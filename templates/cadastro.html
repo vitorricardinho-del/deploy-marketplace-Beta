@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <script>
+        (function() {
+            if (localStorage.getItem('theme') === 'light') {
+                document.documentElement.classList.add('light-mode');
+            }
+        })();
+    </script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ 'Editar Anúncio' if pedido_edit else 'Postar Anúncio' }} - Ivinhema</title>
+    <style>
+        :root {
+            --fundo-pagina: #111111;
+            --fundo-painel: #1c1c1e;
+            --borda-brilho: #00e5ff;
+            --cor-destaque: #00e5ff;
+            --texto-principal: #ffffff;
+            --texto-secundario: #a0a0a0;
+            --ouro: #ffd700;
+            --prata: #00e5ff;
+        }
+
+        /* --- SINCRONIZAÇÃO COM O MURAL --- */
+        html.light-mode body {
+            --fundo-pagina: #f4f4f4;
+            --fundo-painel: #ffffff;
+            --texto-principal: #111111;
+            --texto-secundario: #444444;
+        }
+
+        html.light-mode .painel-cadastro {
+            background: #ffffff;
+            border-color: #ddd;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        html.light-mode h2, html.light-mode label, html.light-mode p.subtitulo {
+            color: #111;
+            text-shadow: none;
+        }
+
+        html.light-mode input, html.light-mode select, html.light-mode textarea {
+            background-color: #fff;
+            border: 1px solid #ccc;
+            color: #111;
+        }
+
+        html.light-mode .secao-planos {
+            background: rgba(0, 0, 0, 0.03);
+            border-color: #ccc;
+        }
+
+        html.light-mode .voltar { color: #00e5ff; }
+
+        body { 
+            font-family: 'Segoe UI', Roboto, sans-serif; 
+            background-color: var(--fundo-pagina); 
+            margin: 0; padding: 20px; 
+            color: var(--texto-principal);
+            display: flex; justify-content: center; align-items: center; min-height: 100vh;
+            transition: background-color 0.2s ease;
+        }
+
+        .painel-cadastro { 
+            background: var(--fundo-painel); 
+            padding: 40px; 
+            border-radius: 20px; 
+            max-width: 480px; 
+            width: 100%;
+            border: 2px solid var(--borda-brilho); 
+            box-shadow: 0 0 30px rgba(0, 229, 255, 0.15); 
+        }
+
+        h2 { 
+            color: var(--texto-principal); 
+            margin-top: 0; 
+            text-align: center; 
+            font-size: 28px;
+            text-shadow: 0 0 10px var(--borda-brilho);
+            text-transform: uppercase;
+        }
+        
+        p.subtitulo { text-align: center; color: var(--texto-secundario); margin-bottom: 30px; font-size: 14px; }
+
+        label { font-weight: 600; display: block; margin-bottom: 8px; color: var(--texto-secundario); font-size: 14px; }
+        
+        input, select, textarea { 
+            width: 100%; padding: 14px; margin-bottom: 20px; 
+            background-color: #111;
+            border: 1px solid #333; border-radius: 10px; 
+            color: var(--texto-principal);
+            box-sizing: border-box; font-size: 16px; transition: 0.3s;
+        }
+
+        input:focus, select:focus, textarea:focus { 
+            border-color: var(--borda-brilho); outline: none; 
+            box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
+        }
+
+        .secao-planos {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+
+        #area-pagamento {
+            display: none; text-align: center; margin-top: 15px;
+            padding-top: 15px; border-top: 1px solid #333;
+        }
+
+        .qr-code-box {
+            width: 180px; height: 180px; background: white;
+            margin: 15px auto; padding: 10px; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        .pix-copia-cola {
+            background: #ffffff !important; 
+            color: #000000 !important; 
+            padding: 15px; 
+            border-radius: 8px;
+            font-family: monospace; 
+            font-size: 12px; 
+            font-weight: bold;
+            word-break: break-all;
+            margin-top: 10px; 
+            border: 2px solid #444; 
+            text-align: center;
+        }
+
+        .btn-copiar {
+            background: var(--ouro); color: #000; border: none; padding: 10px 15px;
+            border-radius: 6px; margin-top: 10px; cursor: pointer; font-weight: bold; width: 100%;
+        }
+
+        .btn-publicar { 
+            background-color: var(--cor-destaque); color: #000; border: none; 
+            padding: 18px; width: 100%; border-radius: 12px; 
+            font-size: 18px; font-weight: bold; cursor: pointer; 
+            transition: 0.3s; text-transform: uppercase;
+        }
+
+        .voltar { display: block; text-align: center; margin-top: 25px; text-decoration: none; color: var(--borda-brilho); font-size: 14px; font-weight: bold; }
+
+        #overlay-confirmacao {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .caixa-alerta {
+            padding: 40px;
+            border-radius: 20px;
+            background: #1c1c1e;
+            max-width: 400px;
+            width: 90%;
+            border: 3px solid #333;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+        }
+
+        .caixa-alerta h3 { margin-top: 0; font-size: 24px; text-transform: uppercase; }
+        .caixa-alerta p { color: #ccc; line-height: 1.6; font-size: 16px; margin: 20px 0; }
+        
+        .loader {
+            border: 4px solid #333;
+            border-top: 4px solid var(--cor-destaque);
+            border-radius: 50%;
+            width: 40px; height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <div id="overlay-confirmacao">
+        <div class="caixa-alerta" id="caixa-alerta">
+            <h3 id="alerta-titulo">Processando...</h3>
+            <div id="loader-icon" class="loader"></div>
+            <p id="alerta-msg"></p>
+            <span id="alerta-footer" style="color: #666; font-size: 12px;">Finalizando no Marketplace...</span>
+        </div>
+    </div>
+
+    <div class="painel-cadastro">
+        <h2>{{ '✏️ Editar Anúncio' if pedido_edit else '🛠️ Novo Anúncio' }}</h2>
+        <p class="subtitulo">Marketplace - Ivinhema</p>
+
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div style="background: rgba(255, 68, 68, 0.1); color: #ff4444; padding: 10px; border-radius: 8px; text-align: center; margin-bottom: 20px; border: 1px solid #ff4444;">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        <form id="form-cadastro" action="{{ url_for('editar_pedido', id=pedido_edit.id) if pedido_edit else url_for('salvar_pedido') }}" method="POST" enctype="multipart/form-data">
+            
+            <label>Título do Anúncio</label>
+            <input type="text" name="titulo" value="{{ pedido_edit.titulo if pedido_edit else '' }}" placeholder="Ex: Venda de Notebook" required>
+
+            <label>Categoria</label>
+            <select name="categoria">
+                {% for cat in ['Eletrônicos', 'Veículos', 'Imóveis', 'Móveis', 'Serviços', 'Outros'] %}
+                <option value="{{ cat }}" {{ 'selected' if pedido_edit and pedido_edit.categoria == cat else '' }}>{{ cat }}</option>
+                {% endfor %}
+            </select>
+
+            <label>Descrição</label>
+            <textarea name="descricao" rows="3" placeholder="Detalhes do produto ou serviço..." required>{{ pedido_edit.descricao if pedido_edit else '' }}</textarea>
+
+            <label>Preço (Opcional)</label>
+            <input type="tel" name="preco" id="preco" value="{{ pedido_edit.preco if pedido_edit else '' }}" placeholder="R$ 0,00">
+
+            <label>WhatsApp (DDD + Número)</label>
+            <input type="tel" name="whatsapp" id="whatsapp" value="{{ pedido_edit.whatsapp if pedido_edit else '' }}" placeholder="(67) 9 9999-9999" required>
+
+            <label>Bairro / Localização</label>
+            <input type="text" name="local" value="{{ pedido_edit.local if pedido_edit else '' }}" placeholder="Ex: Centro, Bairro Guiray, Ivinhema..." required>
+
+            <label>Fotos do Anúncio (Máximo 3)</label>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 20px;">
+                <div style="background: rgba(0, 229, 255, 0.05); padding: 8px; border-radius: 10px; border: 1px solid #333; text-align: center;">
+                    <label style="font-size: 11px; color: var(--prata); display: block; margin-bottom: 5px;">Principal</label>
+                    <div id="pv1" style="width: 100%; height: 80px; background: rgba(0,0,0,0.2); border-radius: 6px; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; border: 1px dashed #444; overflow: hidden;">
+                        <span style="color: #555; font-size: 20px;">📸</span>
+                    </div>
+                    <input type="file" name="foto" accept="image/*" onchange="previewImg(this, 'pv1')" style="font-size: 11px; width: 100%; color: #888;">
+                </div>
+                <div style="background: rgba(255,255,255,0.02); padding: 8px; border-radius: 10px; border: 1px solid #333; text-align: center;">
+                    <label style="font-size: 11px; color: #888; display: block; margin-bottom: 5px;">Foto 2</label>
+                    <div id="pv2" style="width: 100%; height: 80px; background: rgba(0,0,0,0.2); border-radius: 6px; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; border: 1px dashed #444; overflow: hidden;">
+                        <span style="color: #555; font-size: 20px;">📸</span>
+                    </div>
+                    <input type="file" name="foto2" accept="image/*" onchange="previewImg(this, 'pv2')" style="font-size: 11px; width: 100%; color: #888;">
+                </div>
+                <div style="background: rgba(255,255,255,0.02); padding: 8px; border-radius: 10px; border: 1px solid #333; text-align: center;">
+                    <label style="font-size: 11px; color: #888; display: block; margin-bottom: 5px;">Foto 3</label>
+                    <div id="pv3" style="width: 100%; height: 80px; background: rgba(0,0,0,0.2); border-radius: 6px; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; border: 1px dashed #444; overflow: hidden;">
+                        <span style="color: #555; font-size: 20px;">📸</span>
+                    </div>
+                    <input type="file" name="foto3" accept="image/*" onchange="previewImg(this, 'pv3')" style="font-size: 11px; width: 100%; color: #888;">
+                </div>
+            </div>
+
+            {% if not pedido_edit %}
+            <div class="secao-planos">
+                <label>Escolha o tempo de validade:</label>
+                <select name="plano" id="select-plano" style="margin-bottom: 5px; border: 2px solid var(--cor-destaque);">
+                    <option value="0">Grátis (7 dias)</option>
+                    <option value="1">⭐PRATA - R$ 5,00 (Dura 15 dias e fica acima dos grátis!)</option>
+                    <option value="2">🏆OURO - R$ 15,00 (Dura 30 dias e fica acima de todos!)</option>
+                </select>
+                <div id="area-pagamento">
+                    <p style="margin: 0; font-size: 13px; color: #fff;">Escaneie o QR Code abaixo:</p>
+                    <div class="qr-code-box">
+                        <img id="qr-code-img" src="" alt="QR Code PIX" style="max-width: 100%; max-height: 100%;">
+                    </div>
+                    <p style="font-size: 12px; color: var(--ouro); margin-bottom: 5px;">Total: <strong id="valor-plano">R$ 5,00</strong></p>
+                    <div class="pix-copia-cola" id="pix-texto">SELECIONE UM PLANO</div>
+                    <button type="button" class="btn-copiar" onclick="copiarPix()">📋 Copiar Código PIX</button>
+                </div>
+            </div>
+            {% endif %}
+
+            <button type="submit" id="btn-submit" class="btn-publicar">
+                {{ 'Salvar Alterações' if pedido_edit else 'Publicar Anúncio' }}
+            </button>
+        </form>
+        <a href="/" class="voltar">← Voltar para o Mural</a>
+    </div>
+
+    <script>
+        function previewImg(input, idDestino) {
+            const area = document.getElementById(idDestino);
+            const arquivo = input.files[0];
+            if (arquivo) {
+                const leitor = new FileReader();
+                leitor.onload = function(e) { area.innerHTML = `<img src="${e.target.result}" style="width: 100%; height: 100%; object-fit: cover;">`; }
+                leitor.readAsDataURL(arquivo);
+            }
+        }
+
+        const selectPlano = document.getElementById('select-plano');
+        const areaPagamento = document.getElementById('area-pagamento');
+        const valorPlanoTexto = document.getElementById('valor-plano');
+        const pixTexto = document.getElementById('pix-texto');
+        const qrImg = document.getElementById('qr-code-img');
+        const form = document.getElementById('form-cadastro');
+        const overlay = document.getElementById('overlay-confirmacao');
+
+        const pixPrata = "00020126580014br.gov.bcb.pix01365a4ac380-7e79-4808-bba2-73b5cfb868c652040000530398654045.005802BR5913vitor ricardo6009Sao Paulo62230519daqr11569522063569563047D42";
+        const pixOuro = "00020126360014br.gov.bcb.pix0114+5567981244675520400005303986540515.005802BR5913vitor ricardo6009Sao Paulo62230519daqr11569522058147463048924";
+
+        if(selectPlano) {
+            selectPlano.addEventListener('change', function() {
+                const valor = this.value;
+                if (valor == "1") {
+                    areaPagamento.style.display = 'block';
+                    valorPlanoTexto.innerText = 'R$ 5,00';
+                    pixTexto.innerText = pixPrata;
+                    qrImg.src = "{{ url_for('static', filename='qr_prata.jpg') }}";
+                } else if (valor == "2") {
+                    areaPagamento.style.display = 'block';
+                    valorPlanoTexto.innerText = 'R$ 15,00';
+                    pixTexto.innerText = pixOuro;
+                    qrImg.src = "{{ url_for('static', filename='qr_ouro.jpg') }}";
+                } else { areaPagamento.style.display = 'none'; }
+            });
+        }
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault(); 
+            overlay.style.display = 'flex';
+            setTimeout(() => { form.submit(); }, 3000);
+        });
+
+        function copiarPix() {
+            navigator.clipboard.writeText(pixTexto.innerText).then(() => { alert("✅ Código PIX copiado!"); });
+        }
+
+        const inputZap = document.getElementById('whatsapp');
+        inputZap.addEventListener('input', (e) => {
+            let v = e.target.value.replace(/\D/g, "");
+            if (v.length > 11) v = v.slice(0, 11);
+            if (v.length > 10) v = v.replace(/^(\d{2})(\d{1})(\d{4})(\d{4}).*/, "($1) $2 $3-$4");
+            else if (v.length > 6) v = v.replace(/^(\d{2})(\d{4})(\d{0,4}).*/, "($1) $2-$3");
+            else if (v.length > 2) v = v.replace(/^(\d{2})(\d{0,5}).*/, "($1) $2");
+            else if (v.length > 0) v = v.replace(/^(\d*)/, "($1");
+            e.target.value = v;
+        });
+
+        const inputPreco = document.getElementById('preco');
+        inputPreco.addEventListener('input', (e) => {
+            let v = e.target.value.replace(/\D/g, "");
+            if (v === "") { e.target.value = ""; return; }
+            e.target.value = (v / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        });
+    </script>
+</body>
+</html>

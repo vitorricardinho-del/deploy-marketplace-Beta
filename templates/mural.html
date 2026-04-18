@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='logo.png') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='logo.png') }}">
+    <link rel="icon" type="image/png" sizes="192x192" href="{{ url_for('static', filename='logo.png') }}">
+    <link rel="icon" type="image/png" sizes="512x512" href="{{ url_for('static', filename='logo.png') }}">
+    
+    <meta charset="UTF-8">
+    <title>Marketplace Ivinhema</title>
+
+<script>
+    if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register("{{ url_for('static', filename='sw.js') }}")
+        .then(reg => console.log('App pronto para uso offline!'))
+        .catch(err => console.log('Erro ao registrar:', err));
+    });
+    }
+</script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Marketplace Ivinhema</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    {{ moment.include_moment() }}
+    {{ moment.lang("pt-br") }}
+<link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#111111">
+
+<link rel="apple-touch-icon" href="{{ url_for('static', filename='logo.png') }}">
+
+    <style>
+        :root {
+            --ouro: #ffd700;
+            --prata: #00e5ff;
+            --fundo-card: #1c1c1e;
+            --verde-preco: #2ecc71;
+        }
+
+        .barra-beta {
+            background-color: #1c1c1e;
+            color: #4d4b44;
+            text-align: center;
+            padding: 8px 5px;
+            font-size: 13px;
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+            z-index: 9999;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        body {
+            background-color: #111111; 
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: background-color 0.3s ease;
+        }
+
+        body.light-mode { background-color: #f4f4f4 !important; }
+        body.light-mode h1, body.light-mode h3, body.light-mode .user-name { color: #111 !important; text-shadow: none !important; }
+        body.light-mode p, body.light-mode .desc-texto { color: #444 !important; }
+        body.light-mode .card, body.light-mode .user-bar, body.light-mode .footer, body.light-mode .conteudo-modal { background: #ffffff !important; border-color: #ddd !important; box-shadow: 0 5px 15px rgba(0,0,0,0.1) !important; }
+
+        #theme-toggle {
+            background: #1c1c1e;
+            border: 1px solid #333;
+            color: var(--prata);
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: 0.3s;
+        }
+
+        #theme-toggle:hover { border-color: var(--prata); box-shadow: 0 0 15px rgba(0, 229, 255, 0.4); transform: scale(1.05); }
+        body.light-mode #theme-toggle { background: #eee; border-color: #ccc; color: #333; }
+
+        .user-bar {
+            background: #1c1c1e;
+            padding: 10px 25px;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 15px;
+            border-bottom: 1px solid #333;
+        }
+
+        .user-name { color: #00e5ff; font-weight: 500; font-size: 14px; }
+        .btn-logout { color: #ff4444; text-decoration: none; font-size: 12px; padding: 5px 12px; border: 1px solid #ff4444; border-radius: 6px; transition: 0.3s; }
+        .btn-logout:hover { background: #ff4444; color: white; box-shadow: 0 0 15px rgba(255, 68, 68, 0.4); }
+
+        .card-ouro { border: 2px solid var(--ouro) !important; box-shadow: 0 0 20px rgba(255, 215, 0, 0.3); }
+        .card-prata { border: 2px solid var(--prata) !important; box-shadow: 0 0 20px rgba(0, 229, 255, 0.2); }
+        
+        /* ESTILO DO AVISO DE APROVAÇÃO */
+        .badge-aguardando { background: rgba(255, 215, 0, 0.1); color: #ffd700; font-size: 10px; padding: 6px 10px; border-radius: 6px; border: 1px solid #ffd700; font-weight: bold; display: block; margin-bottom: 15px; text-align: center; }
+
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
+        .mural-grid { display: flex; flex-direction: column; gap: 25px; padding: 20px; max-width: 650px; margin: 0 auto; }
+
+        .card {
+            background: var(--fundo-card);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid #333;
+            transition: 0.3s transform ease, 0.3s border-color ease, 0.3s background-color ease;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card:hover { transform: translateY(-5px); border-color: #555; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+
+        .card img, .placeholder-img { width: 100%; height: 200px; object-fit: cover; border-radius: 10px; margin-bottom: 15px; cursor: pointer; transition: 0.3s; }
+
+        #busca { width: 100%; height: 60px; padding: 0 15px 0 55px; border-radius: 12px; border: 2px solid #00e5ff; background: #ffffff; color: #111111; font-size: 18px; font-weight: 500; outline: none; box-sizing: border-box; transition: 0.3s; }
+        #busca:hover { border-color: #fff !important; box-shadow: 0 0 15px rgba(0, 229, 255, 0.4); }
+        #busca:focus { box-shadow: 0 0 20px rgba(0, 229, 255, 0.6); }
+
+        .btn-postar { color: #000; text-decoration: none; background: #00e5ff; padding: 16px 35px; border-radius: 12px; font-weight: bold; font-size: 18px; display: inline-block; transition: 0.3s; }
+        .btn-postar:hover { background: #fff; box-shadow: 0 0 25px rgba(0, 229, 255, 0.7); transform: scale(1.05); }
+
+        .preco-tag { color: #25d366 !important; font-weight: 800; font-size: 20px; margin-bottom: 10px; display: block; text-shadow: 0 0 5px rgba(37, 211, 102, 0.2); }
+
+        .btn-whatsapp-premium { background: #25d366; color: white; padding: 13px 23px; border-radius: 10px; text-decoration: none; font-weight: bold; font-size: 15px; display: inline-flex; align-items: center; justify-content: center; gap: 10px; width: fit-content; box-shadow: 0 0 15px rgba(37, 211, 102, 0.4); transition: 0.3s; animation: pulsar-zap 2s infinite; }
+        @keyframes pulsar-zap { 0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(37, 211, 102, 0); } 100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); } }
+
+        #modalFoto, #modalVenda { display: none; position: fixed; z-index: 9999; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); align-items: center; justify-content: center; padding: 20px; }
+        .conteudo-modal { background: #1c1c1e; max-width: 500px; width: 100%; border-radius: 20px; overflow: hidden; border: 1px solid #333; position: relative; animation: subir 0.3s ease-out; }
+        @keyframes subir { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .fechar-modal { position: absolute; top: 15px; right: 20px; color: white; font-size: 30px; cursor: pointer; z-index: 100; text-shadow: 0 0 10px #000; }
+
+        .footer { background: #1c1c1e; padding: 30px 20px; margin-top: 50px; border-top: 1px solid #333; text-align: center; }
+        .seguranca-box { background: #1a1a1a; border: 1px solid #333; border-radius: 8px; padding: 10px 15px; margin: 0 auto 20px; max-width: 500px; }
+        .seguranca-box h4 { color: #ffb74d; margin: 0 0 5px 0; font-size: 14px; text-transform: uppercase; }
+        .seguranca-box p { color: #888; font-size: 12px; margin: 0; line-height: 1.4; }
+
+        .btn-denunciar { background: rgba(255, 255, 255, 0.05); border: 1px solid #333; color: #888; font-size: 11px; font-weight: 500; cursor: pointer; padding: 6px 12px; border-radius: 6px; transition: 0.3s; display: flex; align-items: center; gap: 6px; }
+        .btn-denunciar:hover { color: #fff; background: #ff4444; border-color: #ff4444; box-shadow: 0 0 10px rgba(255, 68, 68, 0.3); }
+
+        .slide-foto { width: 100%; height: 350px; object-fit: cover; display: none; }
+        .btn-nav-modal { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.5); color: white; border: none; padding: 15px 10px; cursor: pointer; font-size: 20px; z-index: 10; border-radius: 5px; transition: 0.3s; }
+        .btn-nav-modal:hover { background: var(--prata); color: black; }
+    </style>
+</head>
+<body id="anuncio-{{ pedido_id_marcador }}">
+
+<div class="barra-beta">
+    🚀 Marketplace Ivinhema em Fase de Testes (Beta). Os dados podem ser resetados.
+</div>
+
+<div class="user-bar">
+    <button id="theme-toggle">
+        <span id="theme-icon">🌙</span> <span id="theme-text">Modo Escuro</span>
+    </button>
+    {% if current_user.is_authenticated %}
+        <span class="user-name">👤 Olá, {{ current_user.nome }}</span>
+        <a href="{{ url_for('logout') }}" class="btn-logout">Sair da conta</a>
+    {% endif %}
+</div>
+
+<div style="text-align: center; margin-top: 40px;">
+    <h1 id="main-title" style="color: white; margin: 0; font-size: 36px; letter-spacing: -1px;">Marketplace <span style="color: var(--prata);">Ivinhema</span></h1>
+    <p id="sub-title" style="color: #888; font-size: 16px; margin: 10px 0 0; font-weight: 300;">Conectando produtos e serviços em um só lugar.</p>
+</div>
+
+<div style="max-width: 600px; margin: 30px auto 40px; padding: 0 20px; position: relative;">
+    <form action="/" method="GET" style="position: relative; margin: 0;">
+        <span style="position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: #111; font-size: 18px; z-index: 10; pointer-events: none;">🔍</span>
+        <input type="text" name="q" id="busca" placeholder="O que você procura hoje?" value="{{ busca_ativa or '' }}" autocomplete="off">
+        <div id="lista-sugestoes" style="position: absolute; top: 65px; left: 0; right: 0; background: #ffffff; border: 2px solid #00e5ff; border-radius: 12px; z-index: 9999; display: none; overflow: hidden;"></div>
+    </form>
+</div>
+
+<div style="max-width: 650px; margin: -20px auto 40px; padding: 0 20px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
+    <a href="/" style="text-decoration: none; padding: 8px 18px; border-radius: 20px; background: {{ '#333' if not cat_ativa else '#1c1c1e' }}; color: white; font-size: 13px; border: 1px solid {{ 'var(--prata)' if not cat_ativa else '#333' }}; transition: 0.3s;">Todos</a>
+    {% set lista_cats = ['Eletrônicos', 'Serviços', 'Móveis', 'Veículos', 'Imóveis'] %}
+    {% for c in lista_cats %}
+    <a href="/?categoria={{ c }}" style="text-decoration: none; padding: 8px 18px; border-radius: 20px; background: {{ 'var(--prata)' if cat_ativa == c else '#1c1c1e' }}; color: {{ '#000' if cat_ativa == c else '#888' }}; border: 1px solid {{ 'var(--prata)' if cat_ativa == c else '#333' }}; font-size: 13px; font-weight: bold; transition: 0.3s;">{{ c }}</a>
+    {% endfor %}
+</div>
+
+<div style="text-align: center; margin-bottom: 60px;">
+    <a href="{{ url_for('pagina_cadastro') }}" class="btn-postar">+ Postar Novo Anúncio</a>
+</div>
+
+<div class="mural-grid">
+    {% for pedido in pedidos %}
+    {% if (pedido.denuncias or 0) < 3 or pedido.verificado %}
+    <div class="card {% if pedido.plano == 2 %} card-ouro {% elif pedido.plano == 1 %} card-prata {% endif %}" id="anuncio-{{ pedido.id }}">
+
+        {% if current_user.is_authenticated and pedido.usuario_id == current_user.id %}
+        <a href="#" onclick="abrirPesquisaVenda(event, '{{ url_for('excluir_pedido', id=pedido.id) }}', '{{ pedido.categoria }}')"
+            style="position: absolute; top: 10px; right: 10px; background: rgba(255,0,0,0.8); color: white; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; text-decoration: none; z-index: 10; font-size: 12px; border: 1px solid rgba(255,255,255,0.2);">🗑️</a>
+        <a href="{{ url_for('editar_pedido', id=pedido.id) }}" style="position: absolute; top: 10px; right: 45px; background: rgba(0, 229, 255, 0.8); color: white; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; text-decoration: none; z-index: 10; font-size: 12px; border: 1px solid rgba(255,255,255,0.2);">✏️</a>
+        {% endif %}
+
+        {% if current_user.is_authenticated and pedido.usuario_id == current_user.id %}
+            {% if pedido.plano_aguardando > 0 and pedido.plano == 0 %}
+                <div class="badge-aguardando">
+                    ⏳ Aguardando admin aprovar seu plano <b>{{ 'PRATA' if pedido.plano_aguardando == 1 else 'OURO' }}</b>
+                </div>
+            {% endif %}
+        {% endif %}
+
+        <div class="galeria-container" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px;">
+            <div class="foto-principal">
+                <img src="{{ url_for('static', filename='uploads/' + pedido.foto) }}" style="width: 100%; height: 320px; object-fit: cover; border-radius: 12px; cursor: pointer; border: 1px solid #333;" onclick="contarEAbrirModal('{{ url_for('static', filename='uploads/' + pedido.foto) }}', '{{ url_for('static', filename='uploads/' + pedido.foto2) if pedido.foto2 else '' }}', '{{ url_for('static', filename='uploads/' + pedido.foto3) if pedido.foto3 else '' }}', '{{ pedido.id }}', '{{ pedido.titulo }}', '{{ pedido.categoria }}', '{{ pedido.descricao }}', '{{ pedido.whatsapp }}', '{{ pedido.preco }}')">
+            </div>
+            {% if pedido.foto2 or pedido.foto3 %}
+            <div class="fotos-extras" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                {% if pedido.foto2 %}<img src="{{ url_for('static', filename='uploads/' + pedido.foto2) }}" style="width: 100%; height: 120px; object-fit: cover; border-radius: 8px; cursor: pointer; border: 1px solid #333;" onclick="contarEAbrirModal('{{ url_for('static', filename='uploads/' + pedido.foto) }}', '{{ url_for('static', filename='uploads/' + pedido.foto2) if pedido.foto2 else '' }}', '{{ url_for('static', filename='uploads/' + pedido.foto3) if pedido.foto3 else '' }}', '{{ pedido.id }}', '{{ pedido.titulo }}', '{{ pedido.categoria }}', '{{ pedido.descricao }}', '{{ pedido.whatsapp }}', '{{ pedido.preco }}')">{% endif %}
+                {% if pedido.foto3 %}<img src="{{ url_for('static', filename='uploads/' + pedido.foto3) }}" style="width: 100%; height: 120px; object-fit: cover; border-radius: 8px; cursor: pointer; border: 1px solid #333;" onclick="contarEAbrirModal('{{ url_for('static', filename='uploads/' + pedido.foto) }}', '{{ url_for('static', filename='uploads/' + pedido.foto2) if pedido.foto2 else '' }}', '{{ url_for('static', filename='uploads/' + pedido.foto3) if pedido.foto3 else '' }}', '{{ pedido.id }}', '{{ pedido.titulo }}', '{{ pedido.categoria }}', '{{ pedido.descricao }}', '{{ pedido.whatsapp }}', '{{ pedido.preco }}')">{% endif %}
+            </div>
+            {% endif %}
+        </div>
+
+        <h3 style="color: white; margin: 0 0 5px 0; font-size: 22px;">{{ pedido.titulo }}</h3>
+        <div style="margin-bottom: 10px; display: flex; gap: 10px; align-items: center;"><span style="background: #333; color: #00e5ff; font-size: 11px; padding: 4px 10px; border-radius: 4px; text-transform: uppercase;">{{ pedido.categoria }}</span></div>
+        {% if pedido.preco and pedido.preco > 0 %}<span class="preco-tag">R$ {{ "%.2f"|format(pedido.preco)|replace('.', ',') }}</span>{% endif %}
+        <p class="desc-texto" style="color: #a0a0a0; font-size: 15px; margin-bottom: 20px; line-height: 1.5; flex-grow: 1;">{{ pedido.descricao }}</p>
+        
+        <div style="margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+            <span style="color: #888; font-size: 12px;">🕒 Postado {{ moment(pedido.data_criacao).fromNow(refresh=True) }}</span>
+            
+            <button class="btn-denunciar" onclick="denunciarAnuncio('{{ pedido.id }}')">⚠️ Denunciar</button>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #333; padding-top: 15px; margin-top: auto;"><span style="color: #888; font-size: 13px;">📍 {{ pedido.local }}</span><a href="https://wa.me/55{{ pedido.whatsapp }}?text=Olá! Vim do Marketplace Ivinhema 🏪 Interesse: {{ pedido.titulo }}" target="_blank" class="btn-whatsapp-premium"><span>WhatsApp</span></a></div>
+    </div> 
+    {% endif %}
+    {% endfor %}
+</div>
+
+<div id="modalVenda" style="display: none; position: fixed; z-index: 10000; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); align-items: center; justify-content: center; padding: 20px;">
+    <div style="background: #1c1c1e; padding: 30px; border-radius: 20px; border: 1px solid var(--prata); max-width: 400px; width: 100%; text-align: center;">
+        <h2 style="color: white; margin-bottom: 10px;">Vendeu o produto? 🚀</h2>
+        <p style="color: #888; margin-bottom: 25px;">Você conseguiu vender este item através do Marketplace Ivinhema?</p>
+        <div style="display: flex; gap: 10px; justify-content: center;">
+            <button onclick="confirmarVenda(true)" style="background: #25d366; color: black; border: none; padding: 15px 25px; border-radius: 10px; font-weight: bold; cursor: pointer; flex: 1;">SIM ✅</button>
+            <button onclick="confirmarVenda(false)" style="background: #444; color: white; border: none; padding: 15px 25px; border-radius: 10px; font-weight: bold; cursor: pointer; flex: 1;">NÃO ❌</button>
+        </div>
+    </div>
+</div>
+
+<div id="modalFoto" onclick="fecharModal()">
+    <span class="fechar-modal" onclick="fecharModal()">&times;</span>
+    <div class="conteudo-modal" onclick="event.stopPropagation()">
+        <div id="container-fotos-modal" style="position: relative; width: 100%; height: 350px; background: #000; overflow: hidden;"></div>
+        <div style="padding: 25px;">
+            <h2 id="tituloModal" style="color: white; margin: 0 0 5px 0; font-size: 24px;"></h2>
+            <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 15px;"><div id="catModal"></div><div id="precoModal" style="color: var(--verde-preco); font-weight: bold; font-size: 20px;"></div></div>
+            <p id="descModal" style="color: #bbb; line-height: 1.6; font-size: 16px; margin-bottom: 25px;"></p>
+            <a id="linkZapModal" href="" target="_blank" style="background: #25d366; color: white; padding: 15px; border-radius: 12px; text-decoration: none; font-weight: bold; font-size: 16px; display: flex; align-items: center; justify-content: center; gap: 10px;">Falar no WhatsApp 🏪</a>
+        </div>
+    </div>
+</div>
+
+<footer class="footer"><div class="footer-content"><div class="seguranca-box"><h4>⚠️ Dicas de Segurança</h4><p>Nunca faça pagamentos antecipados sem antes verificar o produto.</p></div><p style="color: #666; font-size: 12px;">Marketplace Ivinhema</p></div></footer>
+
+<script>
+    const themeToggle = document.getElementById('theme-toggle');
+    const themeIcon = document.getElementById('theme-icon');
+    const themeText = document.getElementById('theme-text');
+    const body = document.body;
+    if (localStorage.getItem('theme') === 'light') { enableLightMode(); }
+    themeToggle.addEventListener('click', () => { if (body.classList.contains('light-mode')) { enableDarkMode(); } else { enableLightMode(); } });
+    function enableLightMode() { body.classList.add('light-mode'); themeIcon.innerText = '☀️'; themeText.innerText = 'Modo Claro'; localStorage.setItem('theme', 'light'); }
+    function enableDarkMode() { body.classList.remove('light-mode'); themeIcon.innerText = '🌙'; themeText.innerText = 'Modo Escuro'; localStorage.setItem('theme', 'dark'); }
+
+    // --- LOGICA DA PESQUISA INTELIGENTE (BARRA ATUALIZADA) ---
+    const campoBusca = document.getElementById('busca');
+    const listaSugestoes = document.getElementById('lista-sugestoes');
+
+    campoBusca.addEventListener('input', function() {
+        const texto = this.value;
+        if (texto.length >= 2) {
+            fetch(`/sugestoes_busca?q=${texto}`)
+                .then(response => response.json())
+                .then(dados => {
+                    listaSugestoes.innerHTML = '';
+                    if (dados.length > 0) {
+                        dados.forEach(item => {
+                            const div = document.createElement('div');
+                            div.innerHTML = item;
+                            div.style.padding = '12px 15px';
+                            div.style.cursor = 'pointer';
+                            div.style.borderBottom = '1px solid #eee';
+                            div.style.color = '#111'; 
+                            div.onclick = function() {
+                                campoBusca.value = item;
+                                listaSugestoes.style.display = 'none';
+                                campoBusca.form.submit();
+                            };
+                            listaSugestoes.appendChild(div);
+                        });
+                        listaSugestoes.style.display = 'block';
+                    } else {
+                        listaSugestoes.style.display = 'none';
+                    }
+                });
+        } else {
+            listaSugestoes.style.display = 'none';
+        }
+    });
+
+    document.addEventListener('click', function(e) {
+        if (e.target !== campoBusca) {
+            listaSugestoes.style.display = 'none';
+        }
+    });
+    // -----------------------------------------------------
+
+    function denunciarAnuncio(id) {
+        if (confirm("Deseja denunciar este anúncio?")) {
+            fetch('/denunciar_anuncio/' + id).then(response => response.json()).then(data => { 
+                if (data.status === 'sucesso') alert("Denúncia enviada!"); 
+                if (data.status === 'imune') alert("Este anúncio já foi verificado pelo admin."); 
+            });
+        }
+    }
+
+    let urlExclusaoGlobal = "";
+    let categoriaGlobal = "";
+    function abrirPesquisaVenda(event, url, categoria) {
+        event.preventDefault();
+        urlExclusaoGlobal = url;
+        categoriaGlobal = categoria;
+        document.getElementById('modalVenda').style.display = 'flex';
+    }
+
+    function confirmarVenda(vendeu) {
+        if (vendeu) {
+            const catEscaped = encodeURIComponent(categoriaGlobal);
+            fetch('/registrar_venda/' + catEscaped)
+                .then(response => {
+                    if (response.ok) {
+                        alert("Venda registrada com sucesso! Parabéns! 🎉");
+                    }
+                })
+                .catch(err => console.error("Erro ao registrar venda:", err))
+                .finally(() => {
+                    window.location.href = urlExclusaoGlobal;
+                });
+        } else {
+            window.location.href = urlExclusaoGlobal;
+        }
+    }
+
+    let fotoAtual = 0, totalFotos = 0;
+    function contarEAbrirModal(f1, f2, f3, id, titulo, categoria, descricao, whatsapp, preco) {
+        fetch('/contar_clique_imagem/' + id);
+        const container = document.getElementById('container-fotos-modal');
+        container.innerHTML = '';
+        const fotosValidas = [f1, f2, f3].filter(f => f && f.trim() !== '' && !f.includes('None'));
+        totalFotos = fotosValidas.length; fotoAtual = 0;
+        fotosValidas.forEach((src, index) => {
+            const img = document.createElement('img'); img.src = src; img.className = 'slide-foto';
+            if(index === 0) img.style.display = 'block'; container.appendChild(img);
+        });
+        if(totalFotos > 1) { container.innerHTML += `<button onclick="mudarFoto(-1)" class="btn-nav-modal" style="left: 10px;">❮</button><button onclick="mudarFoto(1)" class="btn-nav-modal" style="right: 10px;">❯</button>`; }
+        document.getElementById('tituloModal').innerText = titulo;
+        document.getElementById('catModal').innerHTML = `<span style="background: #333; color: #00e5ff; font-size: 12px; padding: 5px 10px; border-radius: 6px; text-transform: uppercase;">${categoria}</span>`;
+        const precoModal = document.getElementById('precoModal');
+        if (preco && preco !== 'None' && parseFloat(preco) > 0) { precoModal.innerText = 'R$ ' + parseFloat(preco).toFixed(2).replace('.', ','); precoModal.style.display = 'block'; } else { precoModal.style.display = 'none'; }
+        document.getElementById('descModal').innerText = descricao;
+        document.getElementById('linkZapModal').href = `https://wa.me/55${whatsapp}?text=Interesse: ${titulo}`;
+        document.getElementById('modalFoto').style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+    function mudarFoto(n) { const slides = document.getElementsByClassName("slide-foto"); slides[fotoAtual].style.display = "none"; fotoAtual = (fotoAtual + n + totalFotos) % totalFotos; slides[fotoAtual].style.display = "block"; }
+    function fecharModal() { document.getElementById('modalFoto').style.display = 'none'; document.body.style.overflow = 'auto'; }
+</script>
+</body>
+</html>
