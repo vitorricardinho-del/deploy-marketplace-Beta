@@ -295,7 +295,7 @@ def cadastro_usuario():
             # 1. Avisa o sistema do erro
             flash("A senha precisa de pelo menos 8 dígitos!", "erro")
             # 2. Manda o usuário de volta para a página de cadastro (sem tela branca)
-            return redirect(url_for('cadastro'))
+            return redirect(url_for('cadastro_usuario'))
         
         try:
             novo_usuario = Usuario(nome=nome, email=email, senha=senha)
