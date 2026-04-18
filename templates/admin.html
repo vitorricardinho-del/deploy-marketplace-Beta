@@ -234,7 +234,9 @@
             <tbody id="corpoTabela">
                 {% for pedido in pedidos %}
                 <tr style="{% if pedido.denuncias >= 3 and not pedido.verificado %} background: rgba(255, 68, 68, 0.15); {% endif %}">
+                    <td>
                     <img src="/uploads/{{ pedido.foto }}" class="foto-admin" onerror="this.src='/static/sem-foto.jpg'">
+                    </td>
                     <td><strong style="color: #fff;">{{ pedido.titulo }}</strong><br><small style="color: var(--primaria);">{{ pedido.categoria }}</small></td>
                     <td><span style="color: var(--primaria); font-weight: bold;">👤 {{ pedido.autor.nome }}</span><br><small style="color: #666;">{{ pedido.whatsapp }}</small></td>
                     <td>
