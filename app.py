@@ -118,6 +118,9 @@ with app.app_context():
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
+login_manager.login_message = "faça o login para acessar esta página."
+login_manager.login_message_category = "msg-alerta"
+
 @login_manager.user_loader
 def load_user(user_id):
     return db.session.get(Usuario, int(user_id))
