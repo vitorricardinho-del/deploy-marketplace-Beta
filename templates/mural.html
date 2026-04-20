@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='logo.png') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='logo.png') }}">
+    <link rel="icon" type="image/png" sizes="192x192" href="{{ url_for('static', filename='logo.png') }}">
+    <link rel="icon" type="image/png" sizes="512x512" href="{{ url_for('static', filename='logo.png') }}">
+    
+    <meta charset="UTF-8">
+    <title>Marketplace Ivinhema</title>
+
+<script>
+    if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register("{{ url_for('static', filename='sw.js') }}")
+        .then(reg => console.log('App pronto para uso offline!'))
+        .catch(err => console.log('Erro ao registrar:', err));
+    });
+    }
+</script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Marketplace Ivinhema</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    {{ moment.include_moment() }}
+    {{ moment.lang("pt-br") }}
+<link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#111111">
+
+<link rel="apple-touch-icon" href="{{ url_for('static', filename='logo.png') }}">
+
+    <style>
+        :root {
+            --ouro: #ffd700;
+            --prata: #00e5ff;
+            --fundo-card: #1c1c1e;
+            --verde-preco: #2ecc71;
+        }
+
+        .barra-beta {
+            background-color: #1c1c1e;
+            color: #4d4b44;
+            text-align: center;
+            padding: 8px 5px;
+            font-size: 13px;
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+            z-index: 9999;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        body {
+            background-color: #111111; 
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: background-color 0.3s ease;
+        }
+
+        body.light-mode { background-color: #f4f4f4 !important; }
+        body.light-mode h1, body.light-mode h3, body.light-mode .user-name { color: #111 !important; text-shadow: none !important; }
+        body.light-mode p, body.light-mode .desc-texto { color: #444 !important; }
+        body.light-mode .card, body.light-mode .user-bar, body.light-mode .footer, body.light-mode .conteudo-modal { background: #ffffff !important; border-color: #ddd !important; box-shadow: 0 5px 15px rgba(0,0,0,0.1) !important; }
+
+        #theme-toggle {
+            background: #1c1c1e;
+            border: 1px solid #333;
+            color: var(--prata);
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: 0.3s;
+        }
+
+        #theme-toggle:hover { border-color: var(--prata); box-shadow: 0 0 15px rgba(0, 229, 255, 0.4); transform: scale(1.05); }
+        body.light-mode #theme-toggle { background: #eee; border-color: #ccc; color: #333; }
+
+        .user-bar {
+            background: #1c1c1e;
+            padding: 10px 25px;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 15px;
+            border-bottom: 1px solid #333;
+        }
+
+        .user-name { color: #00e5ff; font-weight: 500; font-size: 14px; }
+        .btn-logout { color: #ff4444; text-decoration: none; font-size: 12px; padding: 5px 12px; border: 1px solid #ff4444; border-radius: 6px; transition: 0.3s; }
+        .btn-logout:hover { background: #ff4444; color: white; box-shadow: 0 0 15px rgba(255, 68, 68, 0.4); }
+
+        .card-ouro { border: 2px solid var(--ouro) !important; box-shadow: 0 0 15px rgba(255, 215, 0, 0.2); }
+        .card-prata { border: 2px solid var(--prata) !important; box-shadow: 0 0 15px rgba(0, 229, 255, 0.15); }
+        
+        .badge-aguardando { background: rgba(255, 215, 0, 0.1); color: #ffd700; font-size: 9px; padding: 4px; border-radius: 4px; border: 1px solid #ffd700; font-weight: bold; display: block; margin-bottom: 8px; text-align: center; }
+
+        /* NOVA GRID: LADO A LADO */
+        .mural-grid { 
+            display: grid; 
+            grid-template-columns: repeat(2, 1fr); /* 2 colunas no celular */
+            gap: 12px; 
+            padding: 15px; 
+            max-width: 1000px; 
+            margin: 0 auto; 
+        }
+
+        /* Ajuste para telas maiores (PC) */
+        @media (min-width: 768px) {
+            .mural-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
+        }
+
+        .card {
+            background: var(--fundo-card);
+            border-radius: 12px;
+            padding: 10px;
+            border: 1px solid #333;
+            transition: 0.3s;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .card:hover { transform: translateY(-3px); border-color: var(--prata); }
+
+        /* IMAGEM MENOR NO CARD */
+        .card img, .placeholder-img { 
+            width: 100%; 
+            height: 140px; /* Reduzi a altura para o card ficar compacto */
+            object-fit: cover; 
+            border-radius: 8px; 
+            margin-bottom: 10px; 
+        }
+
+        #busca { width: 100%; height: 50px; padding: 0 15px 0 50px; border-radius: 12px; border: 2px solid #00e5ff; background: #ffffff; color: #111111; font-size: 16px; outline: none; box-sizing: border-box; }
+
+        .btn-postar { color: #000; text-decoration: none; background: #00e5ff; padding: 12px 25px; border-radius: 10px; font-weight: bold; font-size: 16px; display: inline-block; transition: 0.3s; }
+
+        .preco-tag { color: #25d366 !important; font-weight: 800; font-size: 16px; margin-bottom: 5px; display: block; }
+
+        .btn-whatsapp-premium { background: #25d366; color: white; padding: 8px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 13px; display: flex; align-items: center; justify-content: center; width: 100%; transition: 0.3s; margin-top: 10px; }
+
+        .desc-texto { 
+            color: #a0a0a0; 
+            font-size: 13px; 
+            margin-bottom: 10px; 
+            line-height: 1.3; 
+            display: -webkit-box;
+            -webkit-line-clamp: 2; /* Limita a 2 linhas para não esticar o card */
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            flex-grow: 0;
+        }
+
+        #modalFoto, #modalVenda { display: none; position: fixed; z-index: 10000; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); align-items: center; justify-content: center; padding: 20px; }
+        .conteudo-modal { background: #1c1c1e; max-width: 500px; width: 100%; border-radius: 20px; overflow: hidden; border: 1px solid #333; position: relative; }
+
+        .footer { background: #1c1c1e; padding: 20px; margin-top: 40px; border-top: 1px solid #333; text-align: center; }
+
+        .btn-denunciar { background: transparent; border: none; color: #555; font-size: 10px; cursor: pointer; padding: 5px 0; }
+        
+        .slide-foto { width: 100%; height: 300px; object-fit: cover; display: none; }
+    </style>
+</head>
+<body id="anuncio-{{ pedido_id_marcador }}">
+
+<div class="barra-beta">
+    🚀 Marketplace Ivinhema em Fase de Testes (Beta).
+</div>
+
+<div class="user-bar">
+    <button id="theme-toggle">
+        <span id="theme-icon">🌙</span> <span id="theme-text">Modo Escuro</span>
+    </button>
+    {% if current_user.is_authenticated %}
+        <span class="user-name">👤 {{ current_user.nome }}</span>
+        <a href="{{ url_for('logout') }}" class="btn-logout">Sair</a>
+    {% endif %}
+</div>
+
+<div style="text-align: center; margin-top: 25px;">
+    <h1 style="color: white; margin: 0; font-size: 28px;">Marketplace <span style="color: var(--prata);">Ivinhema</span></h1>
+</div>
+
+<div style="max-width: 600px; margin: 20px auto; padding: 0 15px;">
+    <form action="/" method="GET" style="position: relative;">
+        <span style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #111;">🔍</span>
+        <input type="text" name="q" id="busca" placeholder="O que procura?" value="{{ busca_ativa or '' }}">
+    </form>
+</div>
+
+<div style="max-width: 650px; margin: 0 auto 20px; padding: 0 15px; display: flex; gap: 8px; overflow-x: auto; white-space: nowrap; padding-bottom: 10px;">
+    <a href="/" style="text-decoration: none; padding: 6px 15px; border-radius: 20px; background: {{ '#333' if not cat_ativa else '#1c1c1e' }}; color: white; font-size: 12px; border: 1px solid {{ 'var(--prata)' if not cat_ativa else '#333' }};">Todos</a>
+    {% set lista_cats = ['Eletrônicos', 'Serviços', 'Móveis', 'Veículos', 'Imóveis'] %}
+    {% for c in lista_cats %}
+    <a href="/?categoria={{ c }}" style="text-decoration: none; padding: 6px 15px; border-radius: 20px; background: {{ 'var(--prata)' if cat_ativa == c else '#1c1c1e' }}; color: {{ '#000' if cat_ativa == c else '#888' }}; border: 1px solid {{ 'var(--prata)' if cat_ativa == c else '#333' }}; font-size: 12px;">{{ c }}</a>
+    {% endfor %}
+</div>
+
+<div style="text-align: center; margin-bottom: 30px;">
+    <a href="{{ url_for('pagina_cadastro') }}" class="btn-postar">+ Novo Anúncio</a>
+</div>
+
+<div class="mural-grid">
+    {% for pedido in pedidos %}
+    {% if (pedido.denuncias or 0) < 3 or pedido.verificado %}
+    <div class="card {% if pedido.plano == 2 %} card-ouro {% elif pedido.plano == 1 %} card-prata {% endif %}" id="anuncio-{{ pedido.id }}">
+
+        {% if current_user.is_authenticated and pedido.usuario_id == current_user.id %}
+        <div style="position: absolute; top: 5px; right: 5px; display: flex; gap: 5px; z-index: 10;">
+            <a href="{{ url_for('editar_pedido', id=pedido.id) }}" style="background: rgba(0, 229, 255, 0.9); color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; text-decoration: none; font-size: 10px;">✏️</a>
+            <a href="#" onclick="abrirPesquisaVenda(event, '{{ url_for('excluir_pedido', id=pedido.id) }}', '{{ pedido.categoria }}')" style="background: rgba(255,0,0,0.9); color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; text-decoration: none; font-size: 10px;">🗑️</a>
+        </div>
+        {% endif %}
+
+        {% if current_user.is_authenticated and pedido.usuario_id == current_user.id and pedido.plano_aguardando > 0 and pedido.plano == 0 %}
+            <div class="badge-aguardando">⏳ Pendente</div>
+        {% endif %}
+
+        <img src="{{ url_for('serve_uploads', filename=pedido.foto) }}" 
+            onclick="contarEAbrirModal('{{ url_for('serve_uploads', filename=pedido.foto) }}', '{{ url_for('serve_uploads', filename=pedido.foto2) if pedido.foto2 else '' }}', '{{ url_for('serve_uploads', filename=pedido.foto3) if pedido.foto3 else '' }}', '{{ pedido.id }}', '{{ pedido.titulo }}', '{{ pedido.categoria }}', '{{ pedido.descricao }}', '{{ pedido.whatsapp }}', '{{ pedido.preco }}')">
+
+        <h3 style="color: white; margin: 0; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ pedido.titulo }}</h3>
+        
+        {% if pedido.preco and pedido.preco > 0 %}
+            <span class="preco-tag">R$ {{ "%.2f"|format(pedido.preco)|replace('.', ',') }}</span>
+        {% endif %}
+
+        <p class="desc-texto">{{ pedido.descricao }}</p>
+
+        <div style="margin-top: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="color: #666; font-size: 9px;">📍 {{ pedido.local }}</span>
+                <button class="btn-denunciar" onclick="denunciarAnuncio('{{ pedido.id }}')">⚠️</button>
+            </div>
+            <a href="https://wa.me/55{{ pedido.whatsapp }}?text=Olá! Vim do Marketplace Ivinhema 🏪 Interesse: {{ pedido.titulo }}" target="_blank" class="btn-whatsapp-premium">WhatsApp</a>
+        </div>
+    </div> 
+    {% endif %}
+    {% endfor %}
+</div>
+
+<div id="modalVenda">...</div>
+<div id="modalFoto">...</div>
+<footer class="footer">...</footer>
+<script>...</script> </body>
+</html>
