@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    {% if pedido %}
+    <meta property="og:title" content="{{ pedido.titulo }} - R$ {{ '%.2f'|format(pedido.preco)|replace('.', ',') }}">
+    <meta property="og:description" content="Confira este anúncio no Marketplace de Ivinhema: {{ pedido.descricao[:100] }}...">
+    <meta property="og:image" content="{{ url_for('serve_uploads', filename=pedido.foto, _external=True) }}">
+    <meta property="og:url" content="{{ url_for('ver_anuncio_unico', id=pedido.id, _external=True) }}">
+    <meta property="og:type" content="website">
+    
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content="{{ url_for('serve_uploads', filename=pedido.foto, _external=True) }}">
+    {% endif %}
+
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='logo.png') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='logo.png') }}">
+    <link rel="icon" type="image/png" sizes="192x192" href="{{ url_for('static', filename='logo.png') }}">
+    <link rel="icon" type="image/png" sizes="512x512" href="{{ url_for('static', filename='logo.png') }}">
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marketplace Ivinhema</title>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register("{{ url_for('static', filename='sw.js') }}")
+                .then(reg => console.log('App pronto!'))
+                .catch(err => console.log('Erro sw:', err));
+            });
+        }
+    </script>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    {{ moment.include_moment() }}
+    {{ moment.lang("pt-br") }}
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#111111">
+
+    <style>
+        :root {
+            --ouro: #ffd700;
+            --prata: #00e5ff;
+            --fundo-card: #1c1c1e;
+            --verde-preco: #2ecc71;
+        }
+
+        .barra-beta { background: #1c1c1e; color: #4d4b44; text-align: center; padding: 8px; font-size: 13px; font-weight: bold; position: sticky; top: 0; z-index: 9999; }
+
+        body { background-color: #111; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; transition: 0.3s; color: white; }
+        body.light-mode { background-color: #f4f4f4 !important; color: #111 !important; }
+        body.light-mode .card, body.light-mode .user-bar, body.light-mode .conteudo-modal { background: #fff !important; border-color: #ddd !important; }
+        
+        .mural-grid { 
+            display: grid; 
+            grid-template-columns: repeat(2, 1fr); 
+            gap: 12px; 
+            padding: 15px; 
+            max-width: 1000px; 
+            margin: 0 auto; 
+        }
+
+        @media (min-width: 768px) {
+            .mural-grid { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+        }
+
+        .user-bar { background: #1c1c1e; padding: 10px 20px; display: flex; justify-content: flex-end; align-items: center; gap: 15px; border-bottom: 1px solid #333; }
+        #theme-toggle { background: #1c1c1e; border: 1px solid #333; color: var(--prata); padding: 5px 12px; border-radius: 20px; cursor: pointer; }
+        
+        /* ESTILO DO BOTAO SAIR */
+        .btn-logout { color: #ff4444; text-decoration: none; font-size: 12px; padding: 5px 12px; border: 1px solid #ff4444; border-radius: 6px; transition: 0.3s; }
+        .btn-logout:hover { background: #ff4444; color: white; }
+
+        #busca { width: 100%; height: 50px; padding: 0 15px 0 50px; border-radius: 12px; border: 2px solid #00e5ff; background: #ffffff; color: #111111; font-size: 16px; outline: none; box-sizing: border-box; }
+
+        .card { background: var(--fundo-card); border-radius: 12px; padding: 12px; border: 1px solid #333; transition: 0.3s; position: relative; display: flex; flex-direction: column; height: 100%; }
+        .preco-tag { color: #25d366 !important; font-weight: 800; font-size: 18px; margin-bottom: 8px; display: block; }
+
+        .btn-share-main { background: transparent; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 35px; height: 35px; padding: 0; }
+        .btn-share-main img { width: 20px; height: 20px; display: block; object-fit: contain; }
+        .share-menu { 
+            display: none; position: absolute; bottom: 45px; right: 0; 
+            background: rgba(34, 34, 34, 0.95); border: 1px solid #444; border-radius: 20px; 
+            padding: 5px 8px; flex-direction: row; gap: 10px; z-index: 1000; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5); align-items: center;
+        }
+        .share-menu.active { display: flex; }
+        .icon-share-item { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+        .icon-share-item img { width: 100%; height: 100%; object-fit: contain; border-radius: 50%; }
+
+        .btn-whatsapp-premium { background: #25d366; color: white; padding: 10px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px; text-align: center; display: block; transition: 0.3s; width: 100%; box-sizing: border-box; }
+        
+        #modalFoto, #modalVenda { display: none; position: fixed; z-index: 10000; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); align-items: center; justify-content: center; padding: 20px; }
+        .conteudo-modal { background: #1c1c1e; max-width: 500px; width: 100%; border-radius: 20px; overflow: hidden; position: relative; }
+        .fechar-modal { position: absolute; top: 15px; right: 20px; color: white; font-size: 30px; cursor: pointer; z-index: 100; }
+        .slide-foto { width: 100%; height: 350px; object-fit: cover; display: none; }
+        .btn-nav-modal { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.5); color: white; border: none; padding: 15px 10px; cursor: pointer; font-size: 20px; z-index: 10; border-radius: 5px; }
+
+        .desc-texto { color: #a0a0a0; font-size: 13px; margin-bottom: 10px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .btn-denunciar { background: transparent; border: none; color: #555; font-size: 10px; cursor: pointer; padding: 5px 0; }
+    </style>
+</head>
+<body>
+
+<div class="barra-beta">🚀 Marketplace Ivinhema (Beta)</div>
+
+<div class="user-bar">
+    <button id="theme-toggle"><span id="theme-icon">🌙</span> <span id="theme-text">Modo Escuro</span></button>
+    {% if current_user.is_authenticated %}
+        <span style="color:var(--prata); font-size: 14px;">👤 {{ current_user.nome }}</span>
+        <a href="{{ url_for('logout') }}" class="btn-logout">Sair da conta</a>
+    {% endif %}
+</div>
+
+<div style="text-align: center; margin-top: 30px; padding: 0 15px;">
+    <h1 style="color: white; margin: 0; font-size: 28px;">Marketplace <span style="color: var(--prata);">Ivinhema</span></h1>
+    <p style="color: #888; font-size: 14px; margin: 5px 0 0;">Conectando produtos e serviços em um só lugar.</p>
+</div>
+
+<div style="max-width: 500px; margin: 20px auto; padding: 0 20px; position: relative;">
+    <form action="/" method="GET" style="position: relative; margin: 0;">
+        <img src="{{ url_for('static', filename='lupa.png') }}" 
+            style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); width: 25px; height: 25px; z-index: 10; pointer-events: none;" 
+            alt="Buscar">
+        
+        <input type="text" name="q" id="busca" placeholder="O que você procura hoje?" value="{{ busca_ativa or '' }}" autocomplete="off" 
+                style="width: 100%; height: 50px; padding: 0 15px 0 55px; border-radius: 12px; border: 2px solid #00e5ff; background: #ffffff; color: #111111; font-size: 16px; outline: none; box-sizing: border-box;">
+        
+        <div id="lista-sugestoes" style="position: absolute; top: 55px; left: 0; right: 0; background: #ffffff; border: 2px solid #00e5ff; border-radius: 12px; z-index: 9999; display: none; overflow: hidden;"></div>
+    </form>
+</div>
+
+<div style="max-width: 650px; margin: 0 auto 30px; padding: 0 15px; display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;">
+    <a href="/" style="text-decoration: none; padding: 6px 14px; border-radius: 20px; background: {{ '#333' if not cat_ativa else '#1c1c1e' }}; color: white; font-size: 12px; border: 1px solid {{ 'var(--prata)' if not cat_ativa else '#333' }};">Todos</a>
+    {% set lista_cats = ['Eletrônicos', 'Serviços', 'Móveis', 'Veículos', 'Imóveis'] %}
+    {% for c in lista_cats %}
+    <a href="/?categoria={{ c }}" style="text-decoration: none; padding: 6px 14px; border-radius: 20px; background: {{ 'var(--prata)' if cat_ativa == c else '#1c1c1e' }}; color: {{ '#000' if cat_ativa == c else '#888' }}; border: 1px solid {{ 'var(--prata)' if cat_ativa == c else '#333' }}; font-size: 12px; font-weight: bold;">{{ c }}</a>
+    {% endfor %}
+</div>
+
+<div style="text-align: center; margin-bottom: 40px;">
+    <a href="{{ url_for('pagina_cadastro') }}" style="color: #000; text-decoration: none; background: #00e5ff; padding: 12px 25px; border-radius: 10px; font-weight: bold; font-size: 16px;">+ Postar Anúncio</a>
+</div>
+
+<div class="mural-grid">
+    {% for pedido in pedidos %}
+    {% if (pedido.denuncias or 0) < 3 or pedido.verificado %}
+    <div class="card {% if pedido.plano == 2 %} card-ouro {% elif pedido.plano == 1 %} card-prata {% endif %}">
+        
+        {% if current_user.is_authenticated and pedido.usuario_id == current_user.id %}
+        <div style="position: absolute; top: 10px; right: 10px; display: flex; gap: 10px; z-index: 10;">
+            <a href="{{ url_for('editar_pedido', id=pedido.id) }}" 
+            style="background: transparent; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; text-decoration: none;">
+                <img src="{{ url_for('static', filename='edit.png') }}" 
+                    style="width: 100%; height: 100%; object-fit: contain;" alt="Editar">
+            </a>
+            <a href="#" onclick="abrirPesquisaVenda(event, '{{ url_for('excluir_pedido', id=pedido.id) }}', '{{ pedido.categoria }}')" 
+            style="background: transparent; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; text-decoration: none;">
+                <img src="{{ url_for('static', filename='delete.png') }}" 
+                    style="width: 100%; height: 100%; object-fit: contain;" alt="Excluir">
+            </a>
+        </div>
+        {% endif %}
+
+        <img src="{{ url_for('serve_uploads', filename=pedido.foto) }}" 
+            style="width: 100%; height: 160px; object-fit: cover; border-radius: 10px; cursor: pointer; margin-bottom: 10px;" 
+            onclick="contarEAbrirModal('{{ url_for('serve_uploads', filename=pedido.foto) }}', '{{ url_for('serve_uploads', filename=pedido.foto2) if pedido.foto2 else '' }}', '{{ url_for('serve_uploads', filename=pedido.foto3) if pedido.foto3 else '' }}', '{{ pedido.id }}', '{{ pedido.titulo }}', '{{ pedido.categoria }}', '{{ pedido.descricao }}', '{{ pedido.whatsapp }}', '{{ pedido.preco }}')">
+
+        <h3 style="color: white; margin: 0 0 5px 0; font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ pedido.titulo }}</h3>
+        
+        {% if pedido.preco and pedido.preco > 0 %}
+            <span class="preco-tag">R$ {{ "%.2f"|format(pedido.preco)|replace('.', ',') }}</span>
+        {% endif %}
+
+        <p class="desc-texto">{{ pedido.descricao }}</p>
+
+        <div style="margin-top: auto; border-top: 1px solid #333; padding-top: 10px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <span style="color: #666; font-size: 10px;">📍 {{ pedido.local }}</span>
+                <button class="btn-denunciar" onclick="denunciarAnuncio('{{ pedido.id }}')">⚠️ Denunciar</button>
+            </div>
+            
+            <a href="https://wa.me/55{{ pedido.whatsapp }}?text=Interesse: {{ pedido.titulo }}" target="_blank" class="btn-whatsapp-premium">WhatsApp</a>
+
+            <div style="display: flex; justify-content: flex-end; margin-top: 8px;">
+                <div style="position: relative; display: flex; align-items: center;">
+                    <div id="menu-share-{{ pedido.id }}" class="share-menu">
+                        <a href="https://wa.me/?text=Olha esse anúncio: {{ url_for('ver_anuncio_unico', id=pedido.id, _external=True) }}" target="_blank" class="icon-share-item">
+                            <img src="{{ url_for('static', filename='logo-zap.png') }}" alt="WhatsApp">
+                        </a>
+                        <a href="https://www.facebook.com/sharer/sharer.php?u={{ url_for('ver_anuncio_unico', id=pedido.id, _external=True) }}" target="_blank" class="icon-share-item">
+                            <img src="{{ url_for('static', filename='logo-fb.png') }}" alt="Facebook">
+                        </a>
+                        <button onclick="compartilharInsta('{{ url_for('ver_anuncio_unico', id=pedido.id, _external=True) }}')" class="icon-share-item" style="background:none; border:none; cursor:pointer; padding:0;">
+                            <img src="{{ url_for('static', filename='logo-insta.png') }}" alt="Instagram">
+                        </button>
+                    </div>
+                    <button class="btn-share-main" onclick="toggleShareMenu('{{ pedido.id }}')">
+                        <img src="{{ url_for('static', filename='share.png') }}" alt="Compartilhar" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2958/2958791.png'">
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    {% endfor %}
+</div>
+
+<script>
+    const body = document.body;
+    const themeToggle = document.getElementById('theme-toggle');
+    const themeIcon = document.getElementById('theme-icon');
+    const themeText = document.getElementById('theme-text');
+
+    if (localStorage.getItem('theme') === 'light') {
+        body.classList.add('light-mode');
+        themeIcon.innerText = '☀️';
+        themeText.innerText = 'Modo Claro';
+    }
+
+    themeToggle.addEventListener('click', () => {
+        body.classList.toggle('light-mode');
+        const isLight = body.classList.contains('light-mode');
+        themeIcon.innerText = isLight ? '☀️' : '🌙';
+        themeText.innerText = isLight ? 'Modo Claro' : 'Modo Escuro';
+        localStorage.setItem('theme', isLight ? 'light' : 'dark');
+    });
+
+    const campoBusca = document.getElementById('busca');
+    const listaSugestoes = document.getElementById('lista-sugestoes');
+    campoBusca.addEventListener('input', function() {
+        const texto = this.value;
+        if (texto.length >= 2) {
+            fetch(`/sugestoes_busca?q=${texto}`)
+                .then(response => response.json())
+                .then(dados => {
+                    listaSugestoes.innerHTML = '';
+                    if (dados.length > 0) {
+                        dados.forEach(item => {
+                            const div = document.createElement('div');
+                            div.innerHTML = item;
+                            div.style.padding = '12px 15px'; div.style.cursor = 'pointer'; div.style.color = '#111'; 
+                            div.onclick = function() { campoBusca.value = item; campoBusca.form.submit(); };
+                            listaSugestoes.appendChild(div);
+                        });
+                        listaSugestoes.style.display = 'block';
+                    } else { listaSugestoes.style.display = 'none'; }
+                });
+        } else { listaSugestoes.style.display = 'none'; }
+    });
+
+    function toggleShareMenu(id) {
+        document.querySelectorAll('.share-menu').forEach(m => { if(m.id !== 'menu-share-' + id) m.classList.remove('active'); });
+        document.getElementById('menu-share-' + id).classList.toggle('active');
+    }
+
+    window.onclick = function(event) {
+        if (!event.target.closest('.btn-share-main') && !event.target.closest('.share-menu')) {
+            document.querySelectorAll('.share-menu').forEach(m => m.classList.remove('active'));
+        }
+    }
+
+    function denunciarAnuncio(id) {
+        if (confirm("Deseja denunciar este anúncio?")) {
+            fetch('/denunciar_anuncio/' + id).then(response => response.json()).then(data => { 
+                if (data.status === 'sucesso') alert("Denúncia enviada!"); 
+            });
+        }
+    }
+
+    function compartilharInsta(url) {
+        if (navigator.share) { navigator.share({ title: 'Mural Ivinhema', url: url }); } 
+        else { navigator.clipboard.writeText(url); alert("Link copiado!"); }
+    }
+
+    let fotoAtual = 0, totalFotos = 0;
+    function contarEAbrirModal(f1, f2, f3, id, titulo, categoria, descricao, whatsapp, preco) {
+        fetch('/contar_clique_imagem/' + id);
+        const container = document.getElementById('container-fotos-modal');
+        container.innerHTML = '';
+        const fotosValidas = [f1, f2, f3].filter(f => f && f.trim() !== '' && !f.includes('None'));
+        totalFotos = fotosValidas.length; fotoAtual = 0;
+        fotosValidas.forEach((src, index) => {
+            const img = document.createElement('img'); img.src = src; img.className = 'slide-foto';
+            if(index === 0) img.style.display = 'block'; container.appendChild(img);
+        });
+        if(totalFotos > 1) { container.innerHTML += `<button onclick="mudarFoto(-1)" class="btn-nav-modal" style="left: 10px;">❮</button><button onclick="mudarFoto(1)" class="btn-nav-modal" style="right: 10px;">❯</button>`; }
+        document.getElementById('tituloModal').innerText = titulo;
+        document.getElementById('modalFoto').style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+    function mudarFoto(n) { const slides = document.getElementsByClassName("slide-foto"); slides[fotoAtual].style.display = "none"; fotoAtual = (fotoAtual + n + totalFotos) % totalFotos; slides[fotoAtual].style.display = "block"; }
+    function fecharModal() { document.getElementById('modalFoto').style.display = 'none'; document.body.style.overflow = 'auto'; }
+
+    let urlExclusaoGlobal = "";
+    let categoriaGlobal = "";
+    function abrirPesquisaVenda(event, url, categoria) { event.preventDefault(); urlExclusaoGlobal = url; categoriaGlobal = categoria; document.getElementById('modalVenda').style.display = 'flex'; }
+    function confirmarVenda(vendeu) { if (vendeu) { fetch('/registrar_venda/' + encodeURIComponent(categoriaGlobal)).finally(() => { window.location.href = urlExclusaoGlobal; }); } else { window.location.href = urlExclusaoGlobal; } }
+</script>
+
+<div id="modalVenda" style="display: none; position: fixed; z-index: 10000; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); align-items: center; justify-content: center; padding: 20px;">
+    <div style="background: #1c1c1e; padding: 30px; border-radius: 20px; border: 1px solid var(--prata); max-width: 400px; width: 100%; text-align: center;">
+        <h2 style="color: white; margin-bottom: 10px;">Vendeu o produto? 🚀</h2>
+        <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
+            <button onclick="confirmarVenda(true)" style="background: #25d366; color: black; border: none; padding: 15px 25px; border-radius: 10px; font-weight: bold; cursor: pointer; flex: 1;">SIM ✅</button>
+            <button onclick="confirmarVenda(false)" style="background: #444; color: white; border: none; padding: 15px 25px; border-radius: 10px; font-weight: bold; cursor: pointer; flex: 1;">NÃO ❌</button>
+        </div>
+    </div>
+</div>
+
+<div id="modalFoto" onclick="fecharModal()">
+    <span class="fechar-modal" onclick="fecharModal()">&times;</span>
+    <div class="conteudo-modal" onclick="event.stopPropagation()">
+        <div id="container-fotos-modal" style="position: relative; width: 100%; height: 350px; background: #000; overflow: hidden;"></div>
+        <div style="padding: 25px;">
+            <h2 id="tituloModal" style="color: white; margin: 0 0 5px 0; font-size: 24px;"></h2>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
