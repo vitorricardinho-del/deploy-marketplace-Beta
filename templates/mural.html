@@ -2,12 +2,24 @@
 <html lang="pt-br">
 <head>
     {% if pedido %}
-    <meta property="og:title" content="{{ pedido.titulo }} - R$ {{ '%.2f'|format(pedido.preco)|replace('.', ',') }}">
-    <meta property="og:description" content="Confira este anúncio no Marketplace de Ivinhema: {{ pedido.descricao[:100] }}...">
-    <meta property="og:image" content="{{ url_for('serve_uploads', filename=pedido.foto, _external=True) }}">
-    <meta property="og:url" content="{{ url_for('ver_anuncio_unico', id=pedido.id, _external=True) }}">
-    <meta property="og:type" content="website">
+        <meta property="og:type" content="article">
+        <meta property="og:title" content="{{ pedido.titulo }} - R$ {{ '%.2f'|format(pedido.preco)|replace('.', ',') }}">
+        <meta property="og:description" content="📍 Ivinhema-MS | {{ pedido.descricao[:100] }}...">
+        <meta property="og:image" content="{{ url_for('serve_uploads', filename=pedido.foto, _external=True) }}">
+        <meta property="og:image:width" content="1200">
+        <meta property="og:image:height" content="630">
+        <meta property="og:url" content="{{ url_for('ver_anuncio_unico', id=pedido.id, _external=True) }}">
+        <meta property="og:site_name" content="Marketplace Ivinhema">
+
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:image" content="{{ url_for('serve_uploads', filename=pedido.foto, _external=True) }}">
+
+    {% else %}
+        <meta property="og:title" content="Marketplace Ivinhema - Conectando nossa cidade">
+        <meta property="og:image" content="{{ url_for('static', filename='img/logo.png', _external=True) }}">
+        <meta property="og:description" content="O melhor lugar para comprar e vender em Ivinhema-MS.">
     {% endif %}
+
 
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
     <meta charset="UTF-8">
