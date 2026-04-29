@@ -539,23 +539,26 @@ def limpar_denuncias(id):
 def excluir_pedido(id):
     p = Pedido.query.get_or_404(id)
 
-    # --- CORREÇÃO DO BUG: LIMPAR INTERESSADOS ANTES ---
-    # Isso remove qualquer "vínculo" que impede a exclusão no banco de dados
-    Interesse.query.filter_by(pedido_id=id).delete()
+    # PLANEJAMENTO DE SEGURANÇA:
+    # Só apaga se: O usuário for o dono DO pedido OU se o usuário for o Admin
+    if p.usuario_id == current_user.id or current_user.is_admin:
+        
+        # Limpa os vínculos (Interesses)
+        Interesse.query.filter_by(pedido_id=id).delete()
 
-    # Apagar as fotos (seu código original mantido)
-    for f in [p.foto, p.foto2, p.foto3]:
-        if f and f != 'sem-foto.jpg' and f != '':
-            caminho = os.path.join(app.config['UPLOAD_FOLDER'], f)
-            if os.path.exists(caminho): 
-                os.remove(caminho)
+        # Apaga as fotos
+        for f in [p.foto, p.foto2, p.foto3]:
+            if f and f != 'sem-foto.jpg' and f != '':
+                caminho = os.path.join(app.config['UPLOAD_FOLDER'], f)
+                if os.path.exists(caminho): os.remove(caminho)
 
-    # Agora o banco de dados permite deletar o pedido
-    db.session.delete(p)
-    db.session.commit()
-    
-    return redirect(url_for('exibir_mural'))
-
+        db.session.delete(p)
+        db.session.commit()
+        return redirect(url_for('exibir_mural'))
+    else:
+        # Se não for o dono nem o admin, ele recusa
+        return "Você não tem permissão para excluir este anúncio", 403
+        
 @app.route('/zerar_estatisticas')
 @precisa_de_senha
 def zerar_estatisticas():
