@@ -539,25 +539,29 @@ def limpar_denuncias(id):
 def excluir_pedido(id):
     p = Pedido.query.get_or_404(id)
 
-    # PLANEJAMENTO DE SEGURANÇA:
-    # Só apaga se: O usuário for o dono DO pedido OU se o usuário for o Admin
+    # Verifica se é o dono ou admin
     if p.usuario_id == current_user.id or current_user.is_admin:
-        
-        # Limpa os vínculos (Interesses)
-        Interesse.query.filter_by(pedido_id=id).delete()
+        try:
+            # 1. AQUI ESTAVA O ERRO: O nome correto é anuncio_id
+            Interesse.query.filter_by(anuncio_id=id).delete()
 
-        # Apaga as fotos
-        for f in [p.foto, p.foto2, p.foto3]:
-            if f and f != 'sem-foto.jpg' and f != '':
-                caminho = os.path.join(app.config['UPLOAD_FOLDER'], f)
-                if os.path.exists(caminho): os.remove(caminho)
+            # 2. Apaga as fotos do servidor
+            for f in [p.foto, p.foto2, p.foto3]:
+                if f and f != 'sem-foto.jpg' and f != '':
+                    caminho = os.path.join(app.config['UPLOAD_FOLDER'], f)
+                    if os.path.exists(caminho):
+                        os.remove(caminho)
 
-        db.session.delete(p)
-        db.session.commit()
-        return redirect(url_for('exibir_mural'))
+            # 3. Apaga o pedido
+            db.session.delete(p)
+            db.session.commit()
+            return redirect(url_for('exibir_mural'))
+
+        except Exception as e:
+            db.session.rollback()
+            return f"Erro ao excluir: {e}", 500
     else:
-        # Se não for o dono nem o admin, ele recusa
-        return "Você não tem permissão para excluir este anúncio", 403
+        return "Sem permissão", 403
         
 @app.route('/zerar_estatisticas')
 @precisa_de_senha
