@@ -18,8 +18,8 @@ from flask import request
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'uma-chave-muito-segura'
 
-SUPABASE_URL = "VARIABLE_URL"
-SUPABASE_KEY = "VARIABLE_KEY"
+SUPABASE_URL = os.environ.get("SUPABASE_URL")
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # --- CONFIGURAÇÃO ---
