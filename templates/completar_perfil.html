@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Completar Perfil - Marketplace Ivinhema</title>
+    
+    <style>
+        :root {
+            --ouro: #ffd700;
+            --prata: #00e5ff;
+            --fundo-card: #1c1c1e;
+            --verde-preco: #2ecc71;
+        }
+
+        body { 
+            background-color: #111; 
+            margin: 0; padding: 0; 
+            font-family: 'Segoe UI', sans-serif; 
+            color: white; 
+            transition: 0.3s;
+        }
+
+        /* Suporte ao Modo Claro que você já tem */
+        body.light-mode { background-color: #f4f4f4 !important; color: #111 !important; }
+        body.light-mode .card-perfil { background: #fff !important; border-color: #ddd !important; }
+        body.light-mode input, body.light-mode textarea { background: #eee !important; color: #111 !important; }
+
+        .card-perfil {
+            max-width: 450px; 
+            margin: 40px auto; 
+            padding: 30px; 
+            background: var(--fundo-card); 
+            border-radius: 20px; 
+            border: 1px solid #333;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+        }
+
+        .input-estilo {
+            width: 100%; 
+            padding: 14px; 
+            background: #111; 
+            border: 1px solid #444; 
+            border-radius: 12px; 
+            color: white; 
+            outline: none; 
+            box-sizing: border-box; 
+            margin-top: 5px;
+        }
+
+        .btn-salvar {
+            width: 100%; 
+            padding: 16px; 
+            background: var(--prata); 
+            border: none; 
+            border-radius: 14px; 
+            color: #000; 
+            font-weight: bold; 
+            font-size: 16px; 
+            cursor: pointer; 
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card-perfil">
+    <div style="text-align: center; margin-bottom: 25px;">
+        <h2 style="margin: 0;">Quase lá, {{ current_user.nome.split()[0] }}!</h2>
+        <p style="color: #888; font-size: 14px;">Complete seu perfil para passar confiança em Ivinhema.</p>
+    </div>
+
+    <form action="{{ url_for('completar_perfil') }}" method="POST" enctype="multipart/form-data">
+        
+        <div style="text-align: center; margin-bottom: 25px;">
+            <div style="position: relative; width: 120px; height: 120px; margin: 0 auto;">
+                <img id="preview" src="{{ url_for('static', filename='uploads/' + current_user.foto_perfil) if current_user.foto_perfil != 'default_perfil.png' else url_for('static', filename='logo.png') }}" 
+                    style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid var(--prata);">
+                <label for="foto" style="position: absolute; bottom: 0; right: 0; background: var(--prata); width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px solid #111;">
+                    📸
+                </label>
+            </div>
+            <input type="file" id="foto" name="foto" style="display: none;" onchange="mostrarPreview(event)">
+        </div>
+
+        <label style="color: var(--prata); font-size: 12px; font-weight: bold;">NOME OU LOJA</label>
+        <input type="text" name="nome" value="{{ current_user.nome }}" required class="input-estilo">
+
+        <label style="color: var(--prata); font-size: 12px; font-weight: bold; display:block; margin-top:15px;">SEU WHATSAPP (DDD + NÚMERO)</label>
+        <input type="tel" name="whatsapp" id="whatsapp" value="{{ current_user.whatsapp or '' }}" 
+                placeholder="(67) 9 9999-9999" required class="input-estilo">
+        
+        <label style="color: var(--prata); font-size: 12px; font-weight: bold; display:block; margin-top:15px;">SEU INSTAGRAM (OPCIONAL)</label>
+        <div style="position: relative;">
+            <span style="position: absolute; left: 14px; top: 12px; color: #888;">@</span>
+            <input type="text" name="instagram" value="{{ current_user.instagram or '' }}" 
+                placeholder="seu_usuario" class="input-estilo" style="padding-left: 35px;">
+        </div>
+
+        <label style="color: var(--prata); font-size: 12px; font-weight: bold; display:block; margin-top:15px;">SUA CIDADE</label>
+        <input type="text" name="bairro" value="{{ current_user.bairro if current_user.bairro else '' }}" placeholder="Ex: Guiraí, Vitória..." required class="input-estilo">
+
+        <label style="color: var(--prata); font-size: 12px; font-weight: bold; display:block; margin-top:15px;">BIO / FRASE DE CONFIANÇA</label>
+        <textarea name="bio" class="input-estilo" style="height: 100px; resize: none;">{{ current_user.bio }}</textarea>
+
+        <button type="submit" class="btn-salvar">Salvar Dados</button>
+    </form>
+</div>
+
+<div style="max-width: 450px; margin: 0 auto; padding: 0 15px 50px 15px;">
+    <h3 style="color: var(--prata); font-size: 18px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+        🔔 Pessoas Interessadas
+    </h3>
+
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+        {% for i in interessados %}
+        <div style="background: #1c1c1e; padding: 15px; border-radius: 15px; border: 1px solid #333; display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+            
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <img src="{{ url_for('serve_uploads', filename=i.comprador.foto_perfil) }}" 
+                    onerror="this.src='/static/logo.png'"
+                    style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 1px solid #444;">
+                
+                <div>
+                    <strong style="color: white; font-size: 14px; display: block;">{{ i.comprador.nome }}</strong>
+                    <span style="color: #aaa; font-size: 11px;">Item: <b style="color: var(--prata);">{{ i.anuncio.titulo }}</b></span>
+
+                    <button type="button" 
+                        onclick='verPerfilInteressado({{ i.comprador.nome|tojson }}, {{ i.comprador.bairro|tojson }}, {{ i.comprador.bio|tojson }}, "{{ url_for("serve_uploads", filename=i.comprador.foto_perfil) }}", "{{ i.comprador.instagram }}")' 
+                        style="background: rgba(0,229,255,0.1); border: 1px solid var(--prata); color: var(--prata); padding: 4px 8px; border-radius: 6px; font-size: 10px; cursor: pointer; font-weight: bold;">
+                        🔎 Ver Perfil
+                    </button>
+                </div>
+            </div>
+
+            <a href="https://wa.me/55{{ i.comprador.whatsapp }}?text=Olá {{ i.comprador.nome }}, vi seu interesse no meu anúncio ({{ i.anuncio.titulo }})!" 
+                target="_blank" 
+                style="background: #25d366; color: white; padding: 10px; border-radius: 10px; text-decoration: none; font-weight: bold; font-size: 12px; white-space: nowrap;">
+                Chamar
+            </a>
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 20px; background: #1a1a1a; border-radius: 15px; border: 1px dashed #333;">
+            <p style="color: #666; font-size: 13px;">Nenhuma solicitação nova por aqui.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+    // Recupera o tema do LocalStorage para manter a cor que o usuário escolheu
+    if (localStorage.getItem('theme') === 'light') {
+        document.body.classList.add('light-mode');
+    }
+
+    function mostrarPreview(event) {
+        if (event.target.files.length > 0) {
+            var src = URL.createObjectURL(event.target.files[0]);
+            var preview = document.getElementById("preview");
+            preview.src = src;
+        }
+    }
+</script>
+<script>
+    // Máscara de WhatsApp automática
+    const inputZap = document.getElementById('whatsapp');
+    inputZap.addEventListener('input', (e) => {
+        let v = e.target.value.replace(/\D/g, ""); // Remove tudo que não é número
+        if (v.length > 11) v = v.slice(0, 11);
+        if (v.length > 10) {
+            v = v.replace(/^(\d{2})(\d{1})(\d{4})(\d{4}).*/, "($1) $2 $3-$4");
+        } else if (v.length > 6) {
+            v = v.replace(/^(\d{2})(\d{4})(\d{0,4}).*/, "($1) $2-$3");
+        } else if (v.length > 2) {
+            v = v.replace(/^(\d{2})(\d{0,5}).*/, "($1) $2");
+        } else if (v.length > 0) {
+            v = v.replace(/^(\d*)/, "($1");
+        }
+        e.target.value = v;
+    });
+</script>
+<script>
+    // --- NOVA FUNÇÃO PARA VER PERFIL DO INTERESSADO ---
+    function verPerfilInteressado(nome, bairro, bio, foto, insta) {
+        document.getElementById('intNome').innerText = nome;
+        document.getElementById('intBairro').innerText = "📍 " + (bairro || "Bairro não informado");
+        document.getElementById('intBio').innerText = bio && bio !== 'None' ? bio : "Sem biografia.";
+        document.getElementById('intFoto').src = foto;
+
+        const areaInsta = document.getElementById('intInsta');
+        if (insta && insta !== 'None' && insta !== '') {
+            const instaLimpo = insta.replace('@', '').trim();
+            areaInsta.innerHTML = `
+                <a href="https://instagram.com/${instaLimpo}" target="_blank" style="text-decoration:none; color:#ff007f; font-size:14px; font-weight:bold; display:flex; align-items:center; justify-content:center; gap:5px;">
+                    📸 @${instaLimpo}
+                </a>`;
+        } else {
+            areaInsta.innerHTML = '';
+        }
+
+        document.getElementById('modalPerfilInteressado').style.display = 'flex';
+    }
+</script>
+
+<div id="modalPerfilInteressado" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:999999; align-items:center; justify-content:center;" onclick="this.style.display='none'">
+    
+    <div style="background:#1c1c1e; padding:25px; border-radius:20px; width:85%; max-width:320px; text-align:center; border: 2px solid var(--prata); position: relative; overflow: visible;" onclick="event.stopPropagation()">
+        
+        <span onclick="document.getElementById('modalPerfilInteressado').style.display='none'" 
+            style="position:absolute; top:-15px; right:-15px; color:#ff4d4d; font-size:40px; font-weight:bold; cursor:pointer; line-height:1; z-index:1000000; background:#1c1c1e; width:45px; height:45px; border-radius:50%; border:2px solid #ff4d4d; display:flex; align-items:center; justify-content:center; text-shadow: none;">
+            &times;
+        </span>
+
+        <img id="intFoto" src="" style="width:100px; height:100px; border-radius:50%; object-fit:cover; border:2px solid var(--prata); margin-bottom:15px;">
+        <h3 id="intNome" style="margin:5px 0; color:white; font-size: 18px;"></h3>
+        <p id="intBairro" style="font-size:13px; color:var(--prata); margin-bottom:5px;"></p>
+        <div id="intInsta" style="margin-bottom:15px;"></div>
+        <p id="intBio" style="font-size:13px; color:#aaa; font-style:italic; line-height: 1.4; margin-bottom:20px;"></p>
+        <button onclick="document.getElementById('modalPerfilInteressado').style.display='none'" style="background:var(--prata); color:black; border:none; padding:12px 25px; border-radius:10px; font-weight:bold; cursor:pointer; width: 100%;">Fechar</button>
+    </div>
+</div>
+
+<script>
+        // --- NOVA FUNÇÃO PARA VER PERFIL DO INTERESSADO ---
+        function verPerfilInteressado(nome, bairro, bio, foto, insta) {
+            document.getElementById('intNome').innerText = nome;
+            document.getElementById('intBairro').innerText = "📍 " + (bairro || "Bairro não informado");
+            document.getElementById('intBio').innerText = bio && bio !== 'None' ? bio : "Sem biografia.";
+            document.getElementById('intFoto').src = foto;
+
+            const areaInsta = document.getElementById('intInsta');
+            if (insta && insta !== 'None' && insta !== '') {
+                const instaLimpo = insta.replace('@', '').trim();
+                areaInsta.innerHTML = `
+                    <a href="https://instagram.com/${instaLimpo}" target="_blank" style="text-decoration:none; color:#ff007f; font-size:14px; font-weight:bold; display:flex; align-items:center; justify-content:center; gap:5px;">
+                        📸 @${instaLimpo}
+                    </a>`;
+            } else {
+                areaInsta.innerHTML = '';
+            }
+
+            document.getElementById('modalPerfilInteressado').style.display = 'flex';
+        }
+</script>
+
+
+</body>
+</html>
