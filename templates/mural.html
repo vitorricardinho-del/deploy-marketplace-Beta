@@ -497,6 +497,7 @@
     
 
     function contarEAbrirModal(f1, f2, f3, id, titulo, categoria, descricao, whatsapp, preco, vNome, vBairro, vBio, vFoto, vInsta) {
+        fetch('/contar_clique_imagem/' + id);
         const container = document.getElementById('container-fotos-modal');
         const indicador = document.getElementById('indicador-fotos');
         container.innerHTML = '';
