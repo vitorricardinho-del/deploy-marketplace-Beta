@@ -211,18 +211,6 @@
 
 <body class="{% if cat_ativa == 'Food' %}tema-food{% endif %} {{ 'light-mode' if request.cookies.get('tema') == 'light' else '' }}">
 
-{% if notificacoes and notificacoes > 0 %}
-<div id="alerta-vendas" style="position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 99999; width: 90%; max-width: 400px;">
-    <div style="background: #1c1c1e; border: 2px solid var(--ouro); border-radius: 15px; padding: 20px; box-shadow: 0 10px 50px rgba(0,0,0,0.8); text-align: center; animation: balanco 0.5s ease-in-out;">
-        <img src="{{ url_for('static', filename='venda.png') }}" style="width: 50px; height: 50px; margin-bottom: 10px;">
-        <h3 style="color: var(--ouro); margin: 10px 0;">Boas Notícias!</h3>
-        <p style="color: white; font-size: 14px;">Você tem <b>{{ notificacoes }}</b> pessoa(s) interessada(s) nos seus produtos em Ivinhema!</p>
-        
-        <a href="{{ url_for('completar_perfil') }}" style="display: block; background: var(--ouro); color: black; text-decoration: none; padding: 12px; border-radius: 10px; font-weight: bold; margin-top: 15px;">Ver Quem é Agora</a>
-        
-        <button onclick="document.getElementById('alerta-vendas').style.display='none'" style="background: transparent; border: none; color: #888; font-size: 11px; margin-top: 10px; cursor: pointer;">Ver depois</button>
-    </div>
-</div>
 
 <style>
     @keyframes balanco {
