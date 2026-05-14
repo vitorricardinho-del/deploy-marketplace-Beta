@@ -389,7 +389,7 @@
         Food online
     </a>
 
-    {% for c in ['Móveis', 'Eletrônicos', 'Veículos', 'Imóveis', 'Serviços', 'Outros'] %}
+    {% for c in ['Móveis', 'Eletrônicos', 'Veículos', 'Imóveis', 'Serviços', 'Eletrodomésticos', 'Moda', 'Outros'] %}
     <a href="/?categoria={{ c }}" class="btn-categoria" style="background: {{ 'var(--prata)' if cat_ativa == c else '#1c1c1e' }}; color: {{ '#000' if cat_ativa == c else '#888' }}; border: 1px solid {{ 'var(--prata)' if cat_ativa == c else '#333' }};">{{ c }}</a>
     {% endfor %}
 </div>
