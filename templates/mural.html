@@ -1,39 +1,42 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<head>
+    
+    {% if pedido %}
+        <meta property="og:type" content="article">
+        <meta property="og:title" content="{{ pedido.titulo }} - R$ {{ '{:,.2f}'.format(pedido.preco).replace(',', 'v').replace('.', ',').replace('v', '.') }}">
+        <meta property="og:description" content="📍 Ivinhema-MS | {{ pedido.descricao[:100] }}...">
+        <meta property="og:image" content="{{ url_for('serve_uploads', filename=pedido.foto, _external=True) }}">
+        <meta property="og:image:width" content="1200">
+        <meta property="og:image:height" content="630">
+        <meta property="og:url" content="{{ url_for('ver_anuncio_unico', id=pedido.id, _external=True) }}">
+        <meta property="og:site_name" content="Marketplace-MS">
+
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:image" content="{{ url_for('serve_uploads', filename=pedido.foto, _external=True) }}">
+
+    {% else %}
+        <meta property="og:title" content="Marketplace-MS - Conectando nossa cidade">
+        <meta property="og:image" content="{{ url_for('static', filename='img/logo.png', _external=True) }}">
+        <meta property="og:description" content="O melhor lugar para comprar e vender em Marketplace-MS.">
+    {% endif %}
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='logoicon.png') }}">
         
-        <meta name="theme-color" content="#111111">
-        <meta name="apple-mobile-web-app-capable" content="yes">
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>{% if pedido %}{{ pedido.titulo }} - Marketplace-MS{% else %}Marketplace-MS{% endif %}</title>
 
-        <link rel="icon" type="image/png" href="{{ url_for('static', filename='logoicon.png') }}">
-        <link rel="apple-touch-icon" href="{{ url_for('static', filename='logoicon.png') }}">
-        <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    {% if pedido %}
+        <meta property="og:type" content="website">
+        <meta property="og:description" content="O melhor lugar para comprar e vender em Ivinhema-MS.">
+        <meta property="og:image" content="{{ url_for('static', filename='logoicon.png', _external=True) }}">
+    {% endif %}
 
-        <title>{% if pedido %}{{ pedido.titulo }} - Marketplace-MS{% else %}Marketplace-MS{% endif %}</title>
-
-        {% if pedido %}
-            <meta property="og:type" content="article">
-            <meta property="og:title" content="{{ pedido.titulo }} - R$ {{ '{:,.2f}'.format(pedido.preco).replace(',', 'v').replace('.', ',').replace('v', '.') }}">
-            <meta property="og:description" content="📍 Ivinhema-MS | {{ pedido.descricao[:100] }}...">
-            <meta property="og:image" content="{{ url_for('serve_uploads', filename=pedido.foto, _external=True) }}">
-            <meta property="og:url" content="{{ url_for('ver_anuncio_unico', id=pedido.id, _external=True) }}">
-            <meta property="og:site_name" content="Marketplace-MS">
-            <meta name="twitter:card" content="summary_large_image">
-        {% else %}
-            <meta property="og:type" content="website">
-            <meta property="og:title" content="Marketplace-MS - Conectando nossa cidade">
-            <meta property="og:description" content="O melhor lugar para comprar e vender em Ivinhema-MS.">
-            
-            <meta property="og:image" content="{{ url_for('static', filename='img/logo.png', _external=True) }}">
-        {% endif %}
-
-        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-        {{ moment.include_moment() }}
-        {{ moment.lang("pt-br") }}
-    </head>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    {{ moment.include_moment() }}
+    {{ moment.lang("pt-br") }}
+</head>
     <style>
     /* --- SEU CÓDIGO ORIGINAL (MANTIDO 100%) --- */
     :root { --ouro: #ffd700; --prata: #00e5ff; --fundo-card: #1c1c1e; --verde-preco: #2ecc71; --fundo-site: #111111;}
