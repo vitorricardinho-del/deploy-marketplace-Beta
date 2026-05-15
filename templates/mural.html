@@ -9,6 +9,8 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='logoicon.png') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='logoicon.png') }}">
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
         
     <title>{% if pedido %}{{ pedido.titulo }} - Marketplace-MS{% else %}Marketplace-MS{% endif %}</title>
     
