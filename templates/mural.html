@@ -1,6 +1,16 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <meta name="theme-color" content="#111111">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='logoicon.png') }}">
+        
+    <title>{% if pedido %}{{ pedido.titulo }} - Marketplace-MS{% else %}Marketplace-MS{% endif %}</title>
     
     {% if pedido %}
         <meta property="og:type" content="article">
@@ -16,26 +26,10 @@
         <meta name="twitter:image" content="{{ url_for('serve_uploads', filename=pedido.foto, _external=True) }}">
 
     {% else %}
-        <meta property="og:title" content="Marketplace-MS - Conectando nossa cidade">
-        <meta property="og:image" content="{{ url_for('static', filename='img/logo.png', _external=True) }}">
-        <meta property="og:description" content="O melhor lugar para comprar e vender em Marketplace-MS.">
-    {% endif %}
-
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <meta name="theme-color" content="#111111">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    
-    <link rel="icon" type="image/png" href="{{ url_for('static', filename='logoicon.png') }}">
-        
-    <title>{% if pedido %}{{ pedido.titulo }} - Marketplace-MS{% else %}Marketplace-MS{% endif %}</title>
-
-    {% if pedido %}
         <meta property="og:type" content="website">
-        <meta property="og:description" content="O melhor lugar para comprar e vender em Ivinhema-MS.">
-        <meta property="og:image" content="{{ url_for('static', filename='logoicon.png', _external=True) }}">
+        <meta property="og:title" content="Marketplace-MS - Conectando nossa cidade">
+        <meta property="og:description" content="O melhor lugar para comprar e vender em Marketplace-MS.">
+        <meta property="og:image" content="{{ url_for('static', filename='img/logo.png', _external=True) }}">
     {% endif %}
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
