@@ -608,7 +608,17 @@
 
     function contarEAbrirModal(f1, f2, f3, id, titulo, categoria, descricao, whatsapp, preco, vNome, vBairro, vBio, vFoto, vInsta) {
         
-        document.querySelector('.conteudo-modal').scrollTop = 0;
+                // 1. Primeiro abre o modal
+            const modal = document.getElementById('modalFoto');
+            const conteudo = document.querySelector('.conteudo-modal');
+            
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+
+            // 2. O PULO DO GATO: Espera 10ms e força o topo com "behavior: instant"
+            setTimeout(() => {
+                conteudo.scrollTo({ top: 0, behavior: 'instant' });
+            }, 10);
 
         history.pushState({ modalAberto: true }, "");
         
