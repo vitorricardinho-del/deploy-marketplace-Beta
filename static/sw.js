@@ -3,7 +3,7 @@ const CACHE_NAME = 'mural-v2';
 // Arquivos que o app vai salvar para abrir rápido
 const urlsToCache = [
     '/',
-    '/static/logo.png'
+    '/static/logoicon.png'
 ];
 
 self.addEventListener('install', event => {
