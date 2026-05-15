@@ -53,7 +53,7 @@
     .btn-categoria:active { background: var(--prata); color: #111; }
     .desc-texto { color: #a0a0a0; font-size: 12px; margin: 8px 0; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; height: 34px; }
     #modalFoto { display: none; position: fixed; z-index: 10000; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); align-items: center; justify-content: center; }
-    .conteudo-modal { background: #1c1c1e; width: 100%; height: 100%; max-width: 600px; overflow-y: auto; position: relative; }
+    .conteudo-modal { background: #1c1c1e; width: 100%; height: 100%; max-width: 600px; overflow-y: auto; position: relative; -webkit-overflow-scrolling: touch; padding-bottom: 20px; }
     .slide-foto { width: 100%; height: 400px; object-fit: cover; display: none; }
     .btn-whatsapp-premium { background: #25d366; color: white; padding: 10px; border-radius: 8px; text-decoration: none; font-weight: bold; width: 100%; display: block; text-align: center; margin-top: 10px; }
     .btn-denunciar { background: rgba(255, 255, 255, 0.08) !important; border: 1px solid #444 !important; color: #bbb !important; padding: 4px 10px !important; border-radius: 6px !important; font-size: 10px !important; cursor: pointer; }
@@ -604,10 +604,10 @@
             modal.style.display = 'flex';
             document.body.style.overflow = 'hidden';
 
-            // 2. O PULO DO GATO: Espera 10ms e força o topo com "behavior: instant"
-            setTimeout(() => {
-                conteudo.scrollTo({ top: 0, behavior: 'instant' });
-            }, 10);
+            // 3. O NOVO PULO DO GATO: Sincronia com o Refresh Rate da tela
+            requestAnimationFrame(() => {
+                conteudo.scrollTop = 0; // Reseta o scroll instantaneamente
+            });
 
         history.pushState({ modalAberto: true }, "");
         
