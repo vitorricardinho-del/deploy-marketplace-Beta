@@ -19,15 +19,9 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'uma-chave-muito-segura'
 
 
-SUPABASE_URL = "https://bedtrqqguxvmmjsgrswl.supabase.co"
-
-SUPABASE_KEY = "sb_publishable_EJP7rwVMNF8jV_WSahcLMA_GXnl4ERq"
-
+SUPABASE_URL = os.environ.get("SUPABASE_URL")
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
-
-#SUPABASE_URL = os.environ.get("SUPABASE_URL")
-#SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
-#supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # --- CONFIGURAÇÃO ---
 app.config['BABEL_DEFAULT_LOCALE'] = 'pt_br'
