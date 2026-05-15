@@ -609,6 +609,8 @@
     function contarEAbrirModal(f1, f2, f3, id, titulo, categoria, descricao, whatsapp, preco, vNome, vBairro, vBio, vFoto, vInsta) {
         
         document.querySelector('.conteudo-modal').scrollTop = 0;
+
+        history.pushState({ modalAberto: true }, "");
         
         fetch('/contar_clique_imagem/' + id);
         
@@ -680,8 +682,15 @@
     }
 
 
-    function fecharModal() { document.getElementById('modalFoto').style.display = 'none'; document.body.style.overflow = 'auto'; }
-
+    function fecharModal(voltarNoHistorico = true) { 
+            document.getElementById('modalFoto').style.display = 'none'; 
+            document.body.style.overflow = 'auto'; 
+            
+            // A lógica tem que estar DENTRO das chaves da função
+            if (voltarNoHistorico && window.history.state?.modalAberto) {
+                history.back();
+            }
+        }
     function carregarExtrasModal(id, categoria) {
         fetch(`/api/anuncios_extras?id=${id}&categoria=${categoria}`)
             .then(res => res.json()).then(data => {
@@ -724,7 +733,15 @@
         document.getElementById('custom-confirm').style.display = 'none';
         if(sim) { fetch('/denunciar_anuncio/' + idDenuncia).then(() => mostrarAviso("📢 <br><br><b>Denúncia enviada!</b>")); }
     }
-
+    
+    // --- O VIGIA NO FINAL DE TUDO ---
+    window.onpopstate = function(event) {
+        const modal = document.getElementById('modalFoto');
+        // Se o modal estiver visível (flex), ele fecha
+        if (modal && modal.style.display === 'flex') {
+            fecharModal(false); 
+        }
+    };
 </script>
 </body>
 </html>
