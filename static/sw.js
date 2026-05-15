@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mural-v3';
+const CACHE_NAME = 'mural-v4';
 
 // Arquivos que o app vai salvar para abrir rápido
 const urlsToCache = [
