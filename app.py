@@ -158,7 +158,7 @@ class Interesse:
 # --- LIMPEZA ---
 def limpar_expirados():
     hoje = datetime.now(fuso_ivinhema)
-    limite_gratis = hoje - timedelta(days=7)
+    limite_gratis = hoje - timedelta(days=365)
     limite_prata = hoje - timedelta(days=15)
     limite_ouro = hoje - timedelta(days=30)
     
