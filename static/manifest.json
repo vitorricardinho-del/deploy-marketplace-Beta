@@ -12,13 +12,13 @@
         "src": "/static/logoicon.png",
         "sizes": "192x192",
         "type": "image/png",
-        "purpose": "any maskable" 
+        "purpose": "any" 
     },
     {
         "src": "/static/logoicon.png",
         "sizes": "512x512",
         "type": "image/png",
-        "purpose": "any maskable"
+        "purpose": "any"
     }
     ],
     "shortcuts": [
@@ -29,7 +29,7 @@
         {
             "src": "/static/logoicon.png",
             "sizes": "192x192",
-            "purpose": "any maskable"
+            "purpose": "any"
         }
         ]
     }
