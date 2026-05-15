@@ -1,5 +1,5 @@
 {
-    "name": "Marketplace Ivinhema",
+    "name": "Marketplace-Ms",
     "short_name": "Marketplace",
     "description": "O Mural de Serviços e Produtos de Ivinhema",
     "start_url": "/",
@@ -9,13 +9,13 @@
     "orientation": "portrait",
     "icons": [
     {
-        "src": "/static/logo.png",
+        "src": "/static/logoicon.png",
         "sizes": "192x192",
         "type": "image/png",
         "purpose": "any maskable" 
     },
     {
-        "src": "/static/logo.png",
+        "src": "/static/logoicon.png",
         "sizes": "512x512",
         "type": "image/png",
         "purpose": "any maskable"
@@ -27,7 +27,7 @@
         "url": "/cadastrar",
         "icons": [
         {
-            "src": "/static/logo.png",
+            "src": "/static/logoicon.png",
             "sizes": "192x192",
             "purpose": "any maskable"
         }
