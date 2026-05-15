@@ -1,7 +1,7 @@
 {
     "name": "Marketplace-Ms",
     "short_name": "Marketplace",
-    "description": "O Mural de Serviços e Produtos de Ivinhema",
+    "description": "O Mural de Serviços e Produtos de toda região -Ms",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#111111",
