@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Completar Perfil - Marketplace Ivinhema</title>
+    
+    <style>
+        :root {
+            --ouro: #ffd700;
+            --prata: #00e5ff;
+            --fundo-card: #1c1c1e;
+            --verde-preco: #2ecc71;
+        }
+
+        body { 
+            background-color: #111; 
+            margin: 0; padding: 0; 
+            font-family: 'Segoe UI', sans-serif; 
+            color: white; 
+            transition: 0.3s;
+        }
+
+        /* Suporte ao Modo Claro que você já tem */
+        body.light-mode { background-color: #f4f4f4 !important; color: #111 !important; }
+        body.light-mode .card-perfil { background: #fff !important; border-color: #ddd !important; }
+        body.light-mode input, body.light-mode textarea { background: #eee !important; color: #111 !important; }
+
+        .card-perfil {
+            max-width: 450px; 
+            margin: 40px auto; 
+            padding: 30px; 
+            background: var(--fundo-card); 
+            border-radius: 20px; 
+            border: 1px solid #333;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+        }
+
+        .input-estilo {
+            width: 100%; 
+            padding: 14px; 
+            background: #111; 
+            border: 1px solid #444; 
+            border-radius: 12px; 
+            color: white; 
+            outline: none; 
+            box-sizing: border-box; 
+            margin-top: 5px;
+        }
+
+        .btn-salvar {
+            width: 100%; 
+            padding: 16px; 
+            background: var(--prata); 
+            border: none; 
+            border-radius: 14px; 
+            color: #000; 
+            font-weight: bold; 
+            font-size: 16px; 
+            cursor: pointer; 
+            margin-top: 20px;
+        }
+
+        .card-meu-anuncio {
+            background: #1c1c1e;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .btn-turbo {
+            background: #ff9800;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 13px;
+            transition: 0.3s;
+        }
+        .btn-turbo:hover { background: #e67e22; transform: scale(1.05); }
+        .vencido { border: 1px solid #ff4444; background: rgba(255, 68, 68, 0.05); }
+        
+        @keyframes blink {
+        0% { opacity: 1; }
+        50% { opacity: 0.3; }
+        100% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="card-perfil">
+    <div style="text-align: center; margin-bottom: 25px;">
+        <h2 style="margin: 0;">Quase lá, {{ current_user.nome.split()[0] }}!</h2>
+        <p style="color: #888; font-size: 14px;">Complete seu perfil para passar confiança em Ivinhema.</p>
+    </div>
+
+    <form action="{{ url_for('completar_perfil') }}" method="POST" enctype="multipart/form-data">
+        
+        <div style="text-align: center; margin-bottom: 25px;">
+            <div style="position: relative; width: 120px; height: 120px; margin: 0 auto;">
+                <img id="preview" src="{{ url_for('static', filename='uploads/' + current_user.foto_perfil) if current_user.foto_perfil != 'default_perfil.png' else url_for('static', filename='logo.png') }}" 
+                    style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid var(--prata);">
+                <label for="foto" style="position: absolute; bottom: 0; right: 0; background: var(--prata); width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px solid #111;">
+                    📸
+                </label>
+            </div>
+            <input type="file" id="foto" name="foto" style="display: none;" onchange="mostrarPreview(event)">
+        </div>
+
+        <label style="color: var(--prata); font-size: 12px; font-weight: bold;">NOME OU LOJA</label>
+        <input type="text" name="nome" value="{{ current_user.nome }}" required class="input-estilo">
+
+        <label style="color: var(--prata); font-size: 12px; font-weight: bold; display:block; margin-top:15px;">SEU WHATSAPP (DDD + NÚMERO)</label>
+        <input type="tel" name="whatsapp" id="whatsapp" value="{{ current_user.whatsapp or '' }}" 
+                placeholder="(67) 9 9999-9999" required class="input-estilo">
+        
+        <label style="color: var(--prata); font-size: 12px; font-weight: bold; display:block; margin-top:15px;">SEU INSTAGRAM (OPCIONAL)</label>
+        <div style="position: relative;">
+            <span style="position: absolute; left: 14px; top: 12px; color: #888;">@</span>
+            <input type="text" name="instagram" value="{{ current_user.instagram or '' }}" 
+                placeholder="seu_usuario" class="input-estilo" style="padding-left: 35px;">
+        </div>
+
+        <label style="color: var(--prata); font-size: 12px; font-weight: bold; display:block; margin-top:15px;">SUA CIDADE</label>
+        <input type="text" name="bairro" value="{{ current_user.bairro if current_user.bairro else '' }}" placeholder="Ex: Guiraí, Vitória..." required class="input-estilo">
+
+        <label style="color: var(--prata); font-size: 12px; font-weight: bold; display:block; margin-top:15px;">BIO / FRASE DE CONFIANÇA</label>
+        <textarea name="bio" class="input-estilo" style="height: 100px; resize: none;">{{ current_user.bio }}</textarea>
+
+        <button type="submit" class="btn-salvar">Salvar Dados</button>
+    </form>
+</div>
+
+<div style="max-width: 450px; margin: 30px auto; padding: 0 15px;">
+    <h3 style="color: var(--ouro); font-size: 18px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+        🚀 Meus Anúncios
+    </h3>
+    
+{% for p in meus_anuncios %}
+    <div class="card-meu-anuncio {{ 'vencido' if p.plano == 2 and hoje.replace(tzinfo=None) > p.data_expiracao.replace(tzinfo=None) }}">
+        <div style="flex: 1;">
+            <strong style="display: block; font-size: 15px;">{{ p.titulo }}</strong>
+            <small style="color: #888;">
+                {% if p.plano == 2 %}
+                    {% if hoje.replace(tzinfo=None) > p.data_expiracao.replace(tzinfo=None) %}
+                        <span style="color: #ff4444;">🔴 Expirou</span>
+                    {% else %}
+                        📅 Vence: {{ p.data_expiracao.strftime('%d/%m/%Y') }}
+                    {% endif %}
+                {% else %}
+                    <span style="color: #888;">Anúncio Normal (Gratuito)</span>
+                {% endif %}
+            </small>
+        </div>
+
+        <div>
+            {% if p.plano_guardando == 2 %}
+                <span style="font-size: 11px; color: var(--ouro); font-weight: bold; animation: blink 1.5s infinite;">⏳ Aguardando PIX</span>
+            {% elif p.plano == 2 %}
+                <span style="font-size: 11px; color: #2ecc71; font-weight: bold;">🚀 TURBO ATIVO</span>
+            {% else %}
+                <button type="button" onclick="abrirModalTurbo('{{ p.id }}')" class="btn-turbo">
+                    🚀 TURBO
+                </button>
+            {% endif %}
+        </div>
+    </div>
+{% else %}
+    <p style="text-align: center; color: #666; font-size: 13px; padding: 20px;">Você ainda não tem anúncios ativos.</p>
+{% endfor %}
+
+<div id="modalTurbo" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:9999999; align-items:center; justify-content:center;">
+    <div style="background:#1c1c1e; padding:25px; border-radius:20px; width:85%; max-width:300px; text-align:center; border: 2px solid var(--ouro); box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);">
+        
+        <h3 style="color:var(--ouro); margin-top:0;">Turbinar Anúncio! 🚀</h3>
+        <p style="font-size: 13px; color: #ccc;">Volte para o <b>TOPO</b> do mural por mais 30 dias.</p>
+        
+        <div style="background:white; padding:10px; border-radius:10px; margin:15px 0;">
+            <img src="/static/qr_ouro.jpg" alt="QR Code PIX R$ 15" style="width:100%; height:auto;">
+        </div>
+        
+        <p style="color:white; font-weight:bold; margin-bottom: 15px;">Valor: <span style="color: #2ecc71;">R$ 15,00</span></p>
+
+        <div style="background: #000; border: 1px solid #333; padding: 12px; border-radius: 10px; margin-bottom: 20px;">
+            <small style="color: #888; display: block; font-size: 10px; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px;">Chave Pix Copia e Cola:</small>
+            <span id="chave-pix-texto" style="color: #2ecc71; font-size: 11px; font-weight: bold; word-break: break-all; display: block; margin-bottom: 10px;">00020126360014br.gov.bcb.pix0114+5567981244675520400005303986540515.005802BR5913vitor ricardo6009Sao Paulo62230519daqr11569522058147463048924</span>
+            <button type="button" onclick="copiarChavePix()" style="background: #ffd700; color: #000; border: none; padding: 8px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; width: 100%;">📋 Copiar Código</button>
+        </div>
+        
+        <button onclick="confirmarTurbo()" style="background:#25d366; color:white; border:none; padding:14px; border-radius:12px; font-weight:bold; width:100%; cursor:pointer; margin-bottom:10px;">Já fiz o PIX! Solicitar</button>
+        <button onclick="fecharModalTurbo()" style="background:none; border:none; color:#888; cursor:pointer; text-decoration: underline;">Cancelar</button>
+    </div>
+</div>
+
+<script>
+    // --- TEMA E PREVIEW ---
+    if (localStorage.getItem('theme') === 'light') document.body.classList.add('light-mode');
+
+    function mostrarPreview(event) {
+        if (event.target.files.length > 0) {
+            document.getElementById("preview").src = URL.createObjectURL(event.target.files[0]);
+        }
+    }
+
+    // --- MÁSCARA WHATSAPP ---
+    const inputZap = document.getElementById('whatsapp');
+    if(inputZap) {
+        inputZap.addEventListener('input', (e) => {
+            let v = e.target.value.replace(/\D/g, "");
+            if (v.length > 11) v = v.slice(0, 11);
+            if (v.length > 10) v = v.replace(/^(\d{2})(\d{1})(\d{4})(\d{4}).*/, "($1) $2 $3-$4");
+            else if (v.length > 6) v = v.replace(/^(\d{2})(\d{4})(\d{0,4}).*/, "($1) $2-$3");
+            else if (v.length > 2) v = v.replace(/^(\d{2})(\d{0,5}).*/, "($1) $2");
+            else if (v.length > 0) v = v.replace(/^(\d*)/, "($1");
+            e.target.value = v;
+        });
+    }
+
+    // --- LÓGICA TURBO ---
+    let idAnuncioTurbo = null;
+    function abrirModalTurbo(id) {
+        idAnuncioTurbo = id;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        document.getElementById('modalTurbo').style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+    function fecharModalTurbo() {
+        document.getElementById('modalTurbo').style.display = 'none';
+        document.body.style.overflow = 'auto';
+        idAnuncioTurbo = null;
+    }
+    function confirmarTurbo() {
+        if (idAnuncioTurbo) {
+            // 1. Guarda o ID em uma cópia segura antes de limpar
+            let idSeguro = idAnuncioTurbo; 
+            
+            // 2. Fecha o modal e limpa a variável global (pode limpar sem medo agora!)
+            fecharModalTurbo(); 
+            
+            // 3. Redireciona usando a cópia que ficou salva na segurança
+            window.location.href = "/solicitar_turbo/" + idSeguro;
+        }
+    }
+</script>
+
+<script>
+    // --- NOVA FUNÇÃO PARA VER PERFIL DO INTERESSADO ---
+    function verPerfilInteressado(nome, bairro, bio, foto, insta) {
+        document.getElementById('intNome').innerText = nome;
+        document.getElementById('intBairro').innerText = "📍 " + (bairro || "Bairro não informado");
+        document.getElementById('intBio').innerText = bio && bio !== 'None' ? bio : "Sem biografia.";
+        document.getElementById('intFoto').src = foto;
+
+        const areaInsta = document.getElementById('intInsta');
+        if (insta && insta !== 'None' && insta !== '') {
+            const instaLimpo = insta.replace('@', '').trim();
+            areaInsta.innerHTML = `
+                <a href="https://instagram.com/${instaLimpo}" target="_blank" style="text-decoration:none; color:#ff007f; font-size:14px; font-weight:bold; display:flex; align-items:center; justify-content:center; gap:5px;">
+                    📸 @${instaLimpo}
+                </a>`;
+        } else {
+            areaInsta.innerHTML = '';
+        }
+
+        document.getElementById('modalPerfilInteressado').style.display = 'flex';
+    }
+</script>
+
+<div id="modalPerfilInteressado" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:999999; align-items:center; justify-content:center;" onclick="this.style.display='none'">
+    
+    <div style="background:#1c1c1e; padding:25px; border-radius:20px; width:85%; max-width:320px; text-align:center; border: 2px solid var(--prata); position: relative; overflow: visible;" onclick="event.stopPropagation()">
+        
+        <span onclick="document.getElementById('modalPerfilInteressado').style.display='none'" 
+            style="position:absolute; top:-15px; right:-15px; color:#ff4d4d; font-size:40px; font-weight:bold; cursor:pointer; line-height:1; z-index:1000000; background:#1c1c1e; width:45px; height:45px; border-radius:50%; border:2px solid #ff4d4d; display:flex; align-items:center; justify-content:center; text-shadow: none;">
+            &times;
+        </span>
+
+        <img id="intFoto" src="" style="width:100px; height:100px; border-radius:50%; object-fit:cover; border:2px solid var(--prata); margin-bottom:15px;">
+        <h3 id="intNome" style="margin:5px 0; color:white; font-size: 18px;"></h3>
+        <p id="intBairro" style="font-size:13px; color:var(--prata); margin-bottom:5px;"></p>
+        <div id="intInsta" style="margin-bottom:15px;"></div>
+        <p id="intBio" style="font-size:13px; color:#aaa; font-style:italic; line-height: 1.4; margin-bottom:20px;"></p>
+        <button onclick="document.getElementById('modalPerfilInteressado').style.display='none'" style="background:var(--prata); color:black; border:none; padding:12px 25px; border-radius:10px; font-weight:bold; cursor:pointer; width: 100%;">Fechar</button>
+    </div>
+</div>
+
+<script>
+        // --- NOVA FUNÇÃO PARA VER PERFIL DO INTERESSADO ---
+        function verPerfilInteressado(nome, bairro, bio, foto, insta) {
+            document.getElementById('intNome').innerText = nome;
+            document.getElementById('intBairro').innerText = "📍 " + (bairro || "Bairro não informado");
+            document.getElementById('intBio').innerText = bio && bio !== 'None' ? bio : "Sem biografia.";
+            document.getElementById('intFoto').src = foto;
+
+            const areaInsta = document.getElementById('intInsta');
+            if (insta && insta !== 'None' && insta !== '') {
+                const instaLimpo = insta.replace('@', '').trim();
+                areaInsta.innerHTML = `
+                    <a href="https://instagram.com/${instaLimpo}" target="_blank" style="text-decoration:none; color:#ff007f; font-size:14px; font-weight:bold; display:flex; align-items:center; justify-content:center; gap:5px;">
+                        📸 @${instaLimpo}
+                    </a>`;
+            } else {
+                areaInsta.innerHTML = '';
+            }
+
+            document.getElementById('modalPerfilInteressado').style.display = 'flex';
+        }
+</script>
+
+
+</body>
+</html>
