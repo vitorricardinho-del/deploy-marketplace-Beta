@@ -104,7 +104,7 @@
         
         <div style="text-align: center; margin-bottom: 25px;">
             <div style="position: relative; width: 120px; height: 120px; margin: 0 auto;">
-                <img id="preview" src="{{ url_for('static', filename='uploads/perfil/' + current_user.foto_perfil) if current_user.foto_perfil and current_user.foto_perfil != 'default_perfil.png' and current_user.foto_perfil != 'None' and current_user.foto_perfil != '' else url_for('static', filename='logo.png') }}" 
+                <img id="preview" src="{{ url_for('serve_perfil', filename=current_user.foto_perfil) if current_user.foto_perfil and current_user.foto_perfil != 'default_perfil.png' and current_user.foto_perfil != 'None' and current_user.foto_perfil != '' else url_for('static', filename='logo.png') }}" 
                     style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid var(--prata);">
                 <label for="foto" style="position: absolute; bottom: 0; right: 0; background: var(--prata); width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px solid #111;">
                     📸
