@@ -216,7 +216,7 @@
 
             <label>Categoria</label>
             <select name="categoria">
-                {% for cat in ['Eletrônicos', 'Veículos', 'Imóveis', 'Móveis', 'Serviços', 'Outros'] %}
+                {% for cat in ['Eletrônicos', 'Moda', 'Veículos', 'Imóveis', 'Móveis e Decoração', 'Eletrodomésticos', 'Serviços', 'Gamer', 'Outros'] %}
                 <option value="{{ cat }}" {{ 'selected' if pedido_edit and pedido_edit.categoria == cat else '' }}>{{ cat }}</option>
                 {% endfor %}
             </select>
