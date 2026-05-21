@@ -27,7 +27,9 @@
         <meta property="og:title" content="Marketplace-MS - Conectando nossa cidade">
         <meta property="og:description" content="O melhor lugar para comprar e vender em todas regiões de MS.">
         
-        <meta property="og:image" content="{{ url_for('static', filename='img/logoicon.png', _external=True) }}">
+        <meta property="og:url" content="{{ url_for('exibir_mural', _external=True) }}">
+        
+        <meta property="og:image" content="{{ url_for('static', filename='logoicon.png', _external=True) }}">
     {% endif %}
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
