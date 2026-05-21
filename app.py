@@ -1179,9 +1179,8 @@ def limpar_inativos_manual():
 
 
 # Aceita tanto /anuncio/17 quanto /anuncio/17/qualquer-nome-aqui
-@app.route('/anuncio/<int:id>', defaults={'slug': ''})
-@app.route('/anuncio/<int:id>/<string:slug>')
-def ver_anuncio_unico(id, slug):
+@app.route('/anuncio/<int:id>')
+def ver_anuncio_unico(id):
     try:
         # 1. Busca o pedido e já traz os dados do autor (relacionamento)
         resp = supabase.table("pedido").select("*, autor:usuario(*)").eq("id", id).execute()
@@ -1190,7 +1189,8 @@ def ver_anuncio_unico(id, slug):
             abort(404)
             
         dados = resp.data[0]
-
+        
+        # 🔗 ACOPLAMENTO ADAPTADOR: Corrige a coluna 'eu ia' vinda do banco
         if 'eu ia' in dados:
             dados['id'] = dados['eu ia']
         
@@ -1203,12 +1203,11 @@ def ver_anuncio_unico(id, slug):
         else:
             p_real.autor = Usuario(nome="Vendedor", instagram="")
 
-        # --- SUA LÓGICA ORIGINAL (Mantida 100% igual) ---
-       class AnuncioFake:
+        # --- CLASSE ANUNCIOFAKE ALINHADA PERFEITAMENTE ---
+        class AnuncioFake:
             def __init__(self, original):
-                # 🔑 BLINDAGEM DO ID: Tenta puxar .id, se não existir, puxa o .eu_ia do banco
+                # Blindagem do ID aceitando ambas as colunas
                 self.id = getattr(original, 'id', getattr(original, 'eu_ia', None))
-                
                 self.titulo = original.titulo
                 self.categoria = original.categoria
                 self.descricao = original.descricao
@@ -1227,17 +1226,16 @@ def ver_anuncio_unico(id, slug):
                 self.denuncias = 0  
                 self.verificado = True 
                 self.is_premium = True 
-                self.plano = 2
+                self.plano = 2 
 
         anuncio_para_exibir = AnuncioFake(p_real)
         
-        # 🔑 O PULO DO GATO: Mantemos seu mural renderizando normal com pedidos=[...]
-        # mas adicionamos o pedido=anuncio_para_exibir para o <head> ler o preço, foto do /data e nome!
+        # Retorna injetando a lista E o pedido no singular para ligar as tags do WhatsApp
         return render_template('mural.html', 
-                                pedidos=[anuncio_para_exibir], 
-                                pedido=anuncio_para_exibir, 
-                                busca_ativa='', 
-                                cat_ativa='')
+                               pedidos=[anuncio_para_exibir], 
+                               pedido=anuncio_para_exibir, 
+                               busca_ativa='', 
+                               cat_ativa='')
 
     except Exception as e:
         print(f"Erro ao visualizar anúncio único: {e}")
