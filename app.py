@@ -1182,7 +1182,6 @@ def limpar_inativos_manual():
 def ver_anuncio_unico(id):
     try:
         # 1. Busca o pedido e já traz os dados do autor (relacionamento)
-        # O select("*, autor:usuario(*)") faz o papel do 'original.autor' do seu banco antigo
         resp = supabase.table("pedido").select("*, autor:usuario(*)").eq("id", id).execute()
         
         if not resp.data:
@@ -1197,7 +1196,6 @@ def ver_anuncio_unico(id):
         if dados.get('autor'):
             p_real.autor = Usuario(**dados['autor'])
         else:
-            # Caso o autor não exista, criamos um objeto vazio para não quebrar o código
             p_real.autor = Usuario(nome="Vendedor", instagram="")
 
         # --- SUA LÓGICA ORIGINAL (Mantida 100% igual) ---
@@ -1212,16 +1210,13 @@ def ver_anuncio_unico(id):
                 self.foto = original.foto
                 self.foto2 = getattr(original, 'foto2', None)
                 self.foto3 = getattr(original, 'foto3', None)
-                # O modal busca exatamente por 'data_postagem'
                 self.data_postagem = getattr(original, 'data_criacao', None) 
                 self.preco = original.preco
                 self.usuario_id = original.usuario_id
                 self.autor = original.autor 
-                
-                # Pega o instagram direto do objeto autor que vinculamos acima
                 self.instagram = original.autor.instagram
                 
-                # ATRIBUTOS ESSENCIAIS PARA O MURAL NÃO TRAVAR (Sua configuração de exibição):
+                # ATRIBUTOS ESSENCIAIS PARA O MURAL NÃO TRAVAR
                 self.denuncias = 0  
                 self.verificado = True 
                 self.is_premium = True 
@@ -1229,8 +1224,13 @@ def ver_anuncio_unico(id):
 
         anuncio_para_exibir = AnuncioFake(p_real)
         
-        # Retorna a lista com um único item para o mural.html
-        return render_template('mural.html', pedidos=[anuncio_para_exibir], busca_ativa='', cat_ativa='')
+        # 🔑 O PULO DO GATO: Mantemos seu mural renderizando normal com pedidos=[...]
+        # mas adicionamos o pedido=anuncio_para_exibir para o <head> ler o preço, foto do /data e nome!
+        return render_template('mural.html', 
+                                pedidos=[anuncio_para_exibir], 
+                                pedido=anuncio_para_exibir, 
+                                busca_ativa='', 
+                                cat_ativa='')
 
     except Exception as e:
         print(f"Erro ao visualizar anúncio único: {e}")
