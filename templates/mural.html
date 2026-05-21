@@ -15,10 +15,14 @@
     <title>{% if pedido %}{{ pedido.titulo }} - Marketplace-MS{% else %}Marketplace-MS{% endif %}</title>
 
     {% if pedido %}
+        <title>{{ pedido.titulo }} - R$ {{ '{:,.2f}'.format(pedido.preco).replace(',', 'v').replace('.', ',').replace('v', '.') }}</title>
+
         <meta property="og:type" content="article">
         <meta property="og:title" content="{{ pedido.titulo }} - R$ {{ '{:,.2f}'.format(pedido.preco).replace(',', 'v').replace('.', ',').replace('v', '.') }}">
         <meta property="og:description" content="📍 Ivinhema-MS | {{ pedido.descricao[:100] }}...">
+        
         <meta property="og:image" content="{{ url_for('serve_uploads', filename=pedido.foto, _external=True) }}">
+        
         <meta property="og:url" content="{{ url_for('ver_anuncio_unico', id=pedido.id, _external=True) }}">
         <meta property="og:site_name" content="Marketplace-MS">
         <meta name="twitter:card" content="summary_large_image">
