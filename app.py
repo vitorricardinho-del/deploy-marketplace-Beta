@@ -1190,9 +1190,15 @@ def ver_anuncio_unico(id):
             
         dados = resp.data[0]
         
-        # 🔗 ACOPLAMENTO ADAPTADOR: Corrige a coluna 'eu ia' vinda do banco
+        # 🔗 ADAPTADOR CONTRA TRADUÇÃO DO ID
         if 'eu ia' in dados:
             dados['id'] = dados['eu ia']
+            
+        # 🔗 ADAPTADOR CONTRA TRADUÇÃO DO PREÇO (Mapeia 'preço' ou 'price' para 'preco')
+        if 'preço' in dados:
+            dados['preco'] = dados['preço']
+        elif 'price' in dados:
+            dados['preco'] = dados['price']
         
         # Criamos o objeto original para alimentar sua classe AnuncioFake
         p_real = Pedido(dados)
@@ -1203,10 +1209,9 @@ def ver_anuncio_unico(id):
         else:
             p_real.autor = Usuario(nome="Vendedor", instagram="")
 
-        # --- CLASSE ANUNCIOFAKE ALINHADA PERFEITAMENTE ---
+        # --- CLASSE ANUNCIOFAKE BLINDADA ---
         class AnuncioFake:
             def __init__(self, original):
-                # Blindagem do ID aceitando ambas as colunas
                 self.id = getattr(original, 'id', getattr(original, 'eu_ia', None))
                 self.titulo = original.titulo
                 self.categoria = original.categoria
@@ -1217,7 +1222,10 @@ def ver_anuncio_unico(id):
                 self.foto2 = getattr(original, 'foto2', None)
                 self.foto3 = getattr(original, 'foto3', None)
                 self.data_postagem = getattr(original, 'data_criacao', None) 
-                self.preco = original.preco
+                
+                # Captura o preço de forma segura independente do atributo do objeto
+                self.preco = getattr(original, 'preco', getattr(original, 'preço', getattr(original, 'price', 0.0)))
+                
                 self.usuario_id = original.usuario_id
                 self.autor = original.autor 
                 self.instagram = original.autor.instagram
@@ -1230,7 +1238,6 @@ def ver_anuncio_unico(id):
 
         anuncio_para_exibir = AnuncioFake(p_real)
         
-        # Retorna injetando a lista E o pedido no singular para ligar as tags do WhatsApp
         return render_template('mural.html', 
                                pedidos=[anuncio_para_exibir], 
                                pedido=anuncio_para_exibir, 
