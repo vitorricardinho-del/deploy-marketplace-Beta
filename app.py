@@ -1190,6 +1190,9 @@ def ver_anuncio_unico(id, slug):
             abort(404)
             
         dados = resp.data[0]
+
+        if 'eu ia' in dados:
+            dados['id'] = dados['eu ia']
         
         # Criamos o objeto original para alimentar sua classe AnuncioFake
         p_real = Pedido(dados)
@@ -1201,9 +1204,11 @@ def ver_anuncio_unico(id, slug):
             p_real.autor = Usuario(nome="Vendedor", instagram="")
 
         # --- SUA LÓGICA ORIGINAL (Mantida 100% igual) ---
-        class AnuncioFake:
+       class AnuncioFake:
             def __init__(self, original):
-                self.id = original.id
+                # 🔑 BLINDAGEM DO ID: Tenta puxar .id, se não existir, puxa o .eu_ia do banco
+                self.id = getattr(original, 'id', getattr(original, 'eu_ia', None))
+                
                 self.titulo = original.titulo
                 self.categoria = original.categoria
                 self.descricao = original.descricao
@@ -1222,7 +1227,7 @@ def ver_anuncio_unico(id, slug):
                 self.denuncias = 0  
                 self.verificado = True 
                 self.is_premium = True 
-                self.plano = 2 
+                self.plano = 2
 
         anuncio_para_exibir = AnuncioFake(p_real)
         
