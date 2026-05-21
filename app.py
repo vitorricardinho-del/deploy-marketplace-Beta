@@ -1178,8 +1178,10 @@ def limpar_inativos_manual():
     return redirect(url_for('admin_mural'))
 
 
-@app.route('/anuncio/<int:id>')
-def ver_anuncio_unico(id):
+# Aceita tanto /anuncio/17 quanto /anuncio/17/qualquer-nome-aqui
+@app.route('/anuncio/<int:id>', defaults={'slug': ''})
+@app.route('/anuncio/<int:id>/<string:slug>')
+def ver_anuncio_unico(id, slug):
     try:
         # 1. Busca o pedido e já traz os dados do autor (relacionamento)
         resp = supabase.table("pedido").select("*, autor:usuario(*)").eq("id", id).execute()
