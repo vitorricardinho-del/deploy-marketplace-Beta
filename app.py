@@ -1179,8 +1179,9 @@ def limpar_inativos_manual():
 
 
 # Aceita tanto /anuncio/17 quanto /anuncio/17/qualquer-nome-aqui
-@app.route('/anuncio/<int:id>')
-def ver_anuncio_unico(id):
+@app.route('/anuncio/<int:id>', defaults={'slug': ''})
+@app.route('/anuncio/<int:id>/<string:slug>')
+def ver_anuncio_unico(id, slug=""):
     try:
         # 1. Busca o pedido e já traz os dados do autor (relacionamento)
         resp = supabase.table("pedido").select("*, autor:usuario(*)").eq("id", id).execute()
@@ -1190,15 +1191,9 @@ def ver_anuncio_unico(id):
             
         dados = resp.data[0]
         
-        # 🔗 ADAPTADOR CONTRA TRADUÇÃO DO ID
+        # 🔗 ACOPLAMENTO ADAPTADOR: Corrige a coluna 'eu ia' vinda do banco
         if 'eu ia' in dados:
             dados['id'] = dados['eu ia']
-            
-        # 🔗 ADAPTADOR CONTRA TRADUÇÃO DO PREÇO (Mapeia 'preço' ou 'price' para 'preco')
-        if 'preço' in dados:
-            dados['preco'] = dados['preço']
-        elif 'price' in dados:
-            dados['preco'] = dados['price']
         
         # Criamos o objeto original para alimentar sua classe AnuncioFake
         p_real = Pedido(dados)
@@ -1209,9 +1204,10 @@ def ver_anuncio_unico(id):
         else:
             p_real.autor = Usuario(nome="Vendedor", instagram="")
 
-        # --- CLASSE ANUNCIOFAKE BLINDADA ---
+        # --- CLASSE ANUNCIOFAKE ALINHADA PERFEITAMENTE ---
         class AnuncioFake:
             def __init__(self, original):
+                # Blindagem do ID aceitando ambas as colunas
                 self.id = getattr(original, 'id', getattr(original, 'eu_ia', None))
                 self.titulo = original.titulo
                 self.categoria = original.categoria
@@ -1222,10 +1218,7 @@ def ver_anuncio_unico(id):
                 self.foto2 = getattr(original, 'foto2', None)
                 self.foto3 = getattr(original, 'foto3', None)
                 self.data_postagem = getattr(original, 'data_criacao', None) 
-                
-                # Captura o preço de forma segura independente do atributo do objeto
-                self.preco = getattr(original, 'preco', getattr(original, 'preço', getattr(original, 'price', 0.0)))
-                
+                self.preco = original.preco
                 self.usuario_id = original.usuario_id
                 self.autor = original.autor 
                 self.instagram = original.autor.instagram
@@ -1238,24 +1231,29 @@ def ver_anuncio_unico(id):
 
         anuncio_para_exibir = AnuncioFake(p_real)
         
+        # Retorna injetando a lista E o pedido no singular para ligar as tags do WhatsApp
         return render_template('mural.html', 
-                               pedidos=[anuncio_para_exibir], 
-                               pedido=anuncio_para_exibir, 
-                               busca_ativa='', 
-                               cat_ativa='')
+                                pedidos=[anuncio_para_exibir], 
+                                pedido=anuncio_para_exibir, 
+                                busca_ativa='', 
+                                cat_ativa='')
 
     except Exception as e:
         print(f"Erro ao visualizar anúncio único: {e}")
         return redirect(url_for('exibir_mural'))
 
+
+# =====================================================================
+# 2. ROTA DA API DE ANÚNCIOS EXTRAS (Adicionado apenas o tratamento de chaves)
+# =====================================================================
 @app.route('/api/anuncios_extras')
 def anuncios_extras():
     anuncio_id = request.args.get('id', type=int)
     categoria = request.args.get('categoria')
     
     try:
-        # Busca o anúncio atual para saber quem é o dono (Lógica mantida)
-        resp_atual = supabase.table("pedido").select("usuario_id").eq("id", anuncio_id).execute()
+        # Busca o anúncio atual para saber quem é o dono (Usamos * para garantir que traz 'eu ia' e preço se necessário)
+        resp_atual = supabase.table("pedido").select("*").eq("id", anuncio_id).execute()
         
         if not resp_atual.data:
             return jsonify({'do_vendedor': [], 'relacionados': []})
@@ -1263,9 +1261,8 @@ def anuncios_extras():
         usuario_id_vendedor = resp_atual.data[0]['usuario_id']
 
         # 1. Mais anúncios deste vendedor (limitado a 6)
-        # .neq() significa "Not Equal" (Diferente de), para não mostrar o anúncio que já está aberto
         resp_vendedor = supabase.table("pedido")\
-            .select("id, titulo, preco, foto")\
+            .select("*")\
             .eq("usuario_id", usuario_id_vendedor)\
             .neq("id", anuncio_id)\
             .limit(6).execute()
@@ -1274,7 +1271,7 @@ def anuncios_extras():
 
         # 2. Anúncios relacionados (mesma categoria, mas não do mesmo vendedor, limitado a 4)
         resp_relacionados = supabase.table("pedido")\
-            .select("id, titulo, preco, foto")\
+            .select("*")\
             .eq("categoria", categoria)\
             .neq("id", anuncio_id)\
             .neq("usuario_id", usuario_id_vendedor)\
@@ -1282,25 +1279,37 @@ def anuncios_extras():
             
         relacionados = resp_relacionados.data if resp_relacionados.data else []
 
-        # Organiza os dados para enviar para o JavaScript (Sua estrutura de retorno mantida)
-        # Organiza os dados para enviar para o JavaScript (Corrigido)
+        # 🛠️ FUNÇÃO AUXILIAR: Evita repetir código e resolve o problema das chaves traduzidas pelo banco
+        def normalizar_chaves(p):
+            p_id = p.get('id', p.get('eu ia', p.get('eu_ia', 0)))
+            p_preco = p.get('preco', p.get('preço', p.get('price', 0)))
+            return {
+                'id': p_id,
+                'titulo': p.get('titulo', ''),
+                'preco': float(p_preco) if p_preco else 0,
+                'foto': p.get('foto', '')
+            }
+
+        # Organiza os dados para enviar para o JavaScript usando o filtro protetor
         return jsonify({
-            'do_vendedor': [{
-                'id': p['id'],
-                'titulo': p['titulo'],
-                'preco': float(p['preco']) if p['preco'] else 0,
-                'foto': p['foto']
-            } for p in do_vendedor], # Aqui fechamos com } antes do for
-            'relacionados': [{
-                'id': p['id'],
-                'titulo': p['titulo'],
-                'preco': float(p['preco']) if p['preco'] else 0,
-                'foto': p['foto']
-            } for p in relacionados] # Aqui também fechamos com }
+            'do_vendedor': [normalizar_chaves(p) for p in do_vendedor], 
+            'relacionados': [normalizar_chaves(p) for p in relacionados] 
         })
     except Exception as e:
         print(f"Erro na API de anúncios extras: {e}")
         return jsonify({'do_vendedor': [], 'relacionados': []}), 500
+
+@app.route('/admin/rejeitar_loja/<int:loja_id>')
+def admin_rejeitar_loja(loja_id):
+    try:
+        # Deleta a lanchonete direto da tabela categorias do Supabase
+        supabase.table("categorias").delete().eq("id", loja_id).execute()
+        
+        # Recarrega o seu painel do Marketplace limpinho
+        return redirect(url_for('admin_mural'))
+    except Exception as e:
+        print(f"🚨 Erro ao deletar parceiro: {e}")
+        return "Erro ao processar a exclusão do parceiro."
 
 # --- INICIALIZAÇÃO DO SERVIDOR ---
 if __name__ == '__main__':
