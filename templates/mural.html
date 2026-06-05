@@ -789,14 +789,14 @@
                     const slug = p.titulo.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-');
                     const URL_ANUNCIO = `/anuncio/${p.id}/${slug}`;
                     
-                    // 🛠️ TRATAMENTO CIRÚRGICO DA EXTENSÃO: Remove o que estiver após o ponto e fixa o .jpg
-                    const fotoJpg = p.foto.includes('.') ? p.foto.split('.')[0] + '.jpg' : p.foto + '.jpg';
+                    // 🛠️ MUDANÇA CIRÚRGICA: Remove o prefixo antigo se ele vier do Python para não duplicar pastas
+                    const fotoPura = p.foto.replace('../static/uploads/', '');
                     
-                    // 🚀 CLIQUE DIRETO NA TELA TODA: Injetado o onclick para redirecionar a janela direto!
-                    // 📸 ROTA MANTIDA: Continuou rigidamente buscando de /serve_uploads/
+                    // 🚀 CLIQUE DIRETO NA TELA TODA: Injetado o onclick para abrir o anúncio inteirinho!
+                    // 📸 ROTA UNIFICADA: Mudado para /uploads/ para ler do seu volume real do Railway igual ao resto do site!
                     lista.innerHTML += `
                         <a href="${URL_ANUNCIO}" onclick="window.location.href='${URL_ANUNCIO}'; return false;" style="min-width:100px; text-decoration:none;">
-                            <img src="/serve_uploads/${fotoJpg}" style="width:100px; height:70px; object-fit:cover; border-radius:8px;">
+                            <img src="/uploads/${fotoPura}" onerror="this.onerror=null; this.src='/static/logoicon.png';" style="width:100px; height:70px; object-fit:cover; border-radius:8px;">
                             <div style="font-size:10px; color:white;">${p.titulo}</div>
                         </a>`;
                 });
@@ -806,14 +806,13 @@
                     const slug = p.titulo.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-');
                     const URL_ANUNCIO = `/anuncio/${p.id}/${slug}`;
                     
-                    // 🛠️ TRATAMENTO CIRÚRGICO DA EXTENSÃO: Mesmo tratamento exato aqui para garantir o arquivo físico
-                    const fotoJpg = p.foto.includes('.') ? p.foto.split('.')[0] + '.jpg' : p.foto + '.jpg';
+                    // 🛠️ MUDANÇA CIRÚRGICA AQUI TAMBÉM
+                    const fotoPura = p.foto.replace('../static/uploads/', '');
                     
-                    // 🚀 CLIQUE DIRETO NA TELA TODA: Injetado o onclick para redirecionar a janela direto!
-                    // 📸 ROTA MANTIDA: Continuou rigidamente buscando de /serve_uploads/
+                    // 🚀 CLIQUE DIRETO NA TELA TODA: Injetado o onclick para abrir o anúncio inteirinho!
                     listaRelacionados.innerHTML += `
                         <a href="${URL_ANUNCIO}" onclick="window.location.href='${URL_ANUNCIO}'; return false;" style="text-decoration: none; background: #2a2a2e; padding: 10px; border-radius: 10px;">
-                            <img src="/serve_uploads/${fotoJpg}" style="width: 100%; height: 80px; object-fit: cover; border-radius: 8px;">
+                            <img src="/uploads/${fotoPura}" onerror="this.onerror=null; this.src='/static/logoicon.png';" style="width: 100%; height: 80px; object-fit: cover; border-radius: 8px;">
                             <div style="font-size: 12px; color: white; margin-top: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${p.titulo}</div>
                             <div style="color: var(--verde-preco); font-size: 12px; font-weight: bold;">R$ ${parseFloat(p.preco).toFixed(2).replace('.', ',')}</div>
                         </a>`;
