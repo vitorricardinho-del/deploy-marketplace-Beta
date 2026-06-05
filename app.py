@@ -1290,19 +1290,15 @@ def anuncios_extras():
     
     try:
         # Busca o anúncio atual para saber quem é o dono (Sua lógica original mantida)
-        resp_atual = supabase.table("pedido").select("usuario_id").eq("id", id).execute() # Mantido como sua chamada original
+        resp_atual = supabase.table("pedido").select("usuario_id").eq("id", anuncio_id).execute()
         
-        # Fallback de segurança caso mude a variável
-        if not resp_atual or not hasattr(resp_atual, 'data') or not resp_atual.data:
-            resp_atual = supabase.table("pedido").select("usuario_id").eq("id", anuncio_id).execute()
-
         if not resp_atual.data:
             return jsonify({'do_vendedor': [], 'relacionados': []})
 
         usuario_id_vendedor = resp_atual.data[0]['usuario_id']
 
         # 1. Mais anúncios deste vendedor (limitado a 6)
-        # 🔄 select("*") traz todas as colunas para evitar conflito de traduções de colunas
+        # 🔄 Alterado cirurgicamente para select("*") para trazer a coluna real do banco (evita erro de 'eu ia' e 'preço')
         resp_vendedor = supabase.table("pedido")\
             .select("*")\
             .eq("usuario_id", usuario_id_vendedor)\
@@ -1312,6 +1308,7 @@ def anuncios_extras():
         do_vendedor = resp_vendedor.data if resp_vendedor.data else []
 
         # 2. Anúncios relacionados (mesma categoria, mas não do mesmo vendedor, limitado a 4)
+        # 🔄 Alterado para select("*") aqui também pelo mesmo motivo
         resp_relacionados = supabase.table("pedido")\
             .select("*")\
             .eq("categoria", categoria)\
@@ -1321,19 +1318,6 @@ def anuncios_extras():
             
         relacionados = resp_relacionados.data if resp_relacionados.data else []
 
-        # 🛠️ TRATADOR DE IMAGEM DO VOLUME:
-        # Pega a string vinda do banco e força terminar em .jpg minúsculo para casar com o disco do Railway
-        def tratar_foto_volume(p_dict):
-            nome_original = p_dict.get('foto', p_dict.get('imagem', p_dict.get('photo', '')))
-            if not nome_original:
-                return ''
-            # Se vier com caminhos antigos ou extensões diferentes (.png, .jpeg), limpamos
-            nome_limpo = nome_original.replace('../static/uploads/', '').replace('/serve_uploads/', '')
-            if '.' in nome_limpo:
-                nome_base = nome_limpo.rsplit('.', 1)[0]
-                return f"{nome_base}.jpg"
-            return f"{nome_limpo}.jpg"
-
         # Organiza os dados para enviar para o JavaScript (Sua estrutura de retorno 100% mantida)
         return jsonify({
             'do_vendedor': [{
@@ -1342,16 +1326,16 @@ def anuncios_extras():
                 'titulo': p.get('titulo', ''),
                 # 🛡️ Pega 'preco' ou 'preço' ou 'price'
                 'preco': float(p.get('preco', p.get('preço', p.get('price', 0)))) if (p.get('preco') or p.get('preço') or p.get('price')) else 0,
-                # 📸 Variação corrigida: Entrega apenas o nome limpo em .jpg para encaixar na rota do volume fixada no JS
-                'foto': tratar_foto_volume(p)
+                # 📸 O PULO DO GATO: Direciona o caminho relativo direto para a sua pasta static/uploads física do projeto!
+                'foto': f"../static/uploads/{p.get('foto', p.get('imagem', p.get('photo', '')))}"
             } for p in do_vendedor],
             
             'relacionados': [{
-                # 🛡️ Mesma proteção e correção de caminho para os relacionados
+                # 🛡️ Mesma proteção e correção de caminho local para os relacionados
                 'id': p.get('id', p.get('eu ia', p.get('eu_ia', 0))),
                 'titulo': p.get('titulo', ''),
                 'preco': float(p.get('preco', p.get('preço', p.get('price', 0)))) if (p.get('preco') or p.get('preço') or p.get('price')) else 0,
-                'foto': tratar_foto_volume(p)
+                'foto': f"../static/uploads/{p.get('foto', p.get('imagem', p.get('photo', '')))}"
             } for p in relacionados]
         })
     except Exception as e:
