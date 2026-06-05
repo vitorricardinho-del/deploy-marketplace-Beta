@@ -1326,8 +1326,8 @@ def anuncios_extras():
                 'titulo': p.get('titulo', ''),
                 # 🛡️ Pega 'preco' ou 'preço' ou 'price'
                 'preco': float(p.get('preco', p.get('preço', p.get('price', 0)))) if (p.get('preco') or p.get('preço') or p.get('price')) else 0,
-                # 📸 O PULO DO GATO: Direciona o caminho relativo direto para a sua pasta static/uploads física do projeto!
-                'foto': f"../static/uploads/{p.get('foto', p.get('imagem', p.get('photo', '')))}"
+                # 📸 MUDANÇA CIRÚRGICA: Mantém seu caminho intacto, mas garante que o final do arquivo seja lido como .jpg
+                'foto': f"../static/uploads/{p.get('foto', p.get('imagem', p.get('photo', ''))).split('.')[0]}.jpg" if (p.get('foto') or p.get('imagem') or p.get('photo')) else f"../static/uploads/sem-foto.jpg"
             } for p in do_vendedor],
             
             'relacionados': [{
@@ -1335,13 +1335,14 @@ def anuncios_extras():
                 'id': p.get('id', p.get('eu ia', p.get('eu_ia', 0))),
                 'titulo': p.get('titulo', ''),
                 'preco': float(p.get('preco', p.get('preço', p.get('price', 0)))) if (p.get('preco') or p.get('preço') or p.get('price')) else 0,
-                'foto': f"../static/uploads/{p.get('foto', p.get('imagem', p.get('photo', '')))}"
+                # 📸 MUDANÇA CIRÚRGICA: Mesmo tratamento exato mantendo sua estrutura original
+                'foto': f"../static/uploads/{p.get('foto', p.get('imagem', p.get('photo', ''))).split('.')[0]}.jpg" if (p.get('foto') or p.get('imagem') or p.get('photo')) else f"../static/uploads/sem-foto.jpg"
             } for p in relacionados]
         })
     except Exception as e:
         print(f"Erro na API de anúncios extras: {e}")
         return jsonify({'do_vendedor': [], 'relacionados': []}), 500
-
+        
 @app.route('/admin/rejeitar_loja/<int:loja_id>')
 def admin_rejeitar_loja(loja_id):
     try:
