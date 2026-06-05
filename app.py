@@ -1326,8 +1326,8 @@ def anuncios_extras():
                 'titulo': p.get('titulo', ''),
                 # 🛡️ Pega 'preco' ou 'preço' ou 'price'
                 'preco': float(p.get('preco', p.get('preço', p.get('price', 0)))) if (p.get('preco') or p.get('preço') or p.get('price')) else 0,
-                # 📸 MUDANÇA CIRÚRGICA: Mantém seu caminho intacto, mas garante que o final do arquivo seja lido como .jpg
-                'foto': f"../static/uploads/{p.get('foto', p.get('imagem', p.get('photo', ''))).split('.')[0]}.jpg" if (p.get('foto') or p.get('imagem') or p.get('photo')) else f"../static/uploads/sem-foto.jpg"
+                # 📸 AJUSTE DE FIÇÃO: Envia apenas o nome puro da foto gravada na tabela para o JS ler do volume /uploads/
+                'foto': p.get('foto', p.get('imagem', p.get('photo', ''))).replace('../static/uploads/', '').replace('/serve_uploads/', '').replace('/uploads/', '')
             } for p in do_vendedor],
             
             'relacionados': [{
@@ -1335,8 +1335,8 @@ def anuncios_extras():
                 'id': p.get('id', p.get('eu ia', p.get('eu_ia', 0))),
                 'titulo': p.get('titulo', ''),
                 'preco': float(p.get('preco', p.get('preço', p.get('price', 0)))) if (p.get('preco') or p.get('preço') or p.get('price')) else 0,
-                # 📸 MUDANÇA CIRÚRGICA: Mesmo tratamento exato mantendo sua estrutura original
-                'foto': f"../static/uploads/{p.get('foto', p.get('imagem', p.get('photo', ''))).split('.')[0]}.jpg" if (p.get('foto') or p.get('imagem') or p.get('photo')) else f"../static/uploads/sem-foto.jpg"
+                # 📸 AJUSTE DE FIÇÃO: Mesma limpeza cirúrgica para mandar o nome limpo para os relacionados
+                'foto': p.get('foto', p.get('imagem', p.get('photo', ''))).replace('../static/uploads/', '').replace('/serve_uploads/', '').replace('/uploads/', '')
             } for p in relacionados]
         })
     except Exception as e:
