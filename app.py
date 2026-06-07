@@ -528,8 +528,15 @@ def editar_pedido(id):
 
         return redirect(url_for('exibir_mural'))
     
-    # No GET, envia o objeto 'pedido' exatamente como o seu cadastro.html espera
-    return render_template('cadastro.html', pedido_edit=pedido, i=pedido)
+    # 🔌 O AJUSTE CIRÚRGICO: Cria a mesma lista de cidades do seu mural para alimentar o HTML
+    cidades_ms = [
+        'Ivinhema', 'Angélica', 'Novo Horizonte', 'Deodápolis',
+        'Dourados', 'Naviraí', 'Nova Andradina',
+    ]
+    cidades_ms.sort()
+
+    # No GET, envia o objeto 'pedido' e a lista 'cidades_ms' que o seu cadastro.html tanto precisa
+    return render_template('cadastro.html', pedido_edit=pedido, i=pedido, cidades_ms=cidades_ms)
 
 
 @app.route('/denunciar_anuncio/<int:id>')
