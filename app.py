@@ -804,60 +804,47 @@ def login():
 @app.route('/cadastro_usuario', methods=['GET', 'POST'])
 def cadastro_usuario():
     if request.method == 'POST':
-        # 1. Captura e limpa os dados (Mantendo sua lógica de limpeza)
+        # 1. Captura e limpa os dados essenciais de login
         nome = request.form.get('nome', '').strip()
         email = request.form.get('email', '').lower().strip()
         senha = request.form.get('senha')
         
-        # CAPTURA DE AUDITORIA: IP e Versão dos Termos
-        user_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
-        versao_atual = "1.0-2026"
-        
-        # 2. Trava de segurança de 8 dígitos (Sua lógica original intacta)
+        # 2. Trava de segurança de pelo menos 8 dígitos
         if len(senha) < 8:
             flash("A senha precisa de pelo menos 8 dígitos!", "erro")
             return redirect(url_for('cadastro_usuario'))
         
+        # Gera o hash seguro da senha
         senha_com_hash = generate_password_hash(senha)
         
         try:
-            # 3. Prepara os dados para o Supabase incluindo os campos de segurança
-            dados_update = {
-            "nome": nome,
-            "bairro": bairro,
-            "bio": bio,
-            "whatsapp": whatsapp,
-            "instagram": instagram
+            # 3. Monta o dicionário correto com os campos que a tabela 'usuario' espera
+            dados_usuario = {
+                "nome": nome,
+                "email": email,
+                "senha": senha_com_hash,
+                "foto_perfil": "default_perfil.png",  # Padrão inicial
+                "bairro": "Ivinhema",                # Padrão inicial
+                "bio": "Vendedor verificado no Marketplace Ivinhema",
+                "data_cadastro": datetime.now(fuso_ivinhema).isoformat()
             }
         
-            # 🤖 CONFIGURAÇÃO DO VOLUME DO RAILWAY (ADICIONE ISSO AQUI)
-            if os.path.exists('/data'):
-                pasta_perfil = '/data/perfil'
-            else:
-                pasta_perfil = os.path.join('static', 'uploads', 'perfil')
-            os.makedirs(pasta_perfil, exist_ok=True)
-        
-            # 2. Lógica da Foto de Perfil
-            file = request.files.get('foto')
-            
-            # 4. Insere no Supabase (Substituindo o commit do SQL tradicional)
+            # 4. Insere no Supabase usando o dicionário correto
             resp = supabase.table("usuario").insert(dados_usuario).execute()
             
-            
             if resp.data:
-                # 5. Converte o retorno em objeto Usuario para o Flask-Login
-                # O resp.data[0] já traz o ID e a Data gerados pelo Supabase
+                # 5. Converte o retorno em objeto Usuario para o Flask-Login iniciar a sessão
                 novo_usuario = Usuario(**resp.data[0])
                 
                 # Realiza o login automático do novo usuário
                 login_user(novo_usuario)
                 
-                # 6. Redireciona para completar o perfil (Sua lógica mantida)
+                # 6. Redireciona para completar o resto do perfil (onde ele vai colocar o zap, instagram, etc.)
                 return redirect(url_for('completar_perfil'))
                 
         except Exception as e:
             print(f"Erro no cadastro via Supabase: {e}")
-            flash("Erro ao realizar cadastro. Verifique se o e-mail já existe.", "erro")
+            flash("Erro ao realizar cadastro. Verifique se este e-mail já está cadastrado.", "erro")
             return redirect(url_for('cadastro_usuario'))
             
     return render_template('cadastro_usuario.html')
