@@ -1,0 +1,8 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.ivinhema.foodonline",
+    "sha256_cert_fingerprints": ["SUA_CHAVE_SHA256_AQUI_DENTRO"]
+  }
+}]
