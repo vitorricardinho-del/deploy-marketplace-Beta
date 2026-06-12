@@ -1345,6 +1345,10 @@ def admin_rejeitar_loja(loja_id):
         print(f"🚨 Erro ao deletar parceiro: {e}")
         return "Erro ao processar a exclusão do parceiro."
 
+@app.route('/.well-known/assetlinks.json')
+def servir_assetlinks():
+    # 🔌 Entrega o arquivo direto da pasta static com o cabeçalho oficial que o Google exige
+    return app.send_static_file('assetlinks.json'), 200, {'Content-Type': 'application/json'}
 
 # --- INICIALIZAÇÃO DO SERVIDOR ---
 if __name__ == '__main__':
