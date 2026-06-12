@@ -1,8 +1,0 @@
-[{
-      "relation": ["delegate_permission/common.handle_all_urls"],
-      "target": {
-        "namespace": "android_app",
-        "package_name": "app.railway.up.marketplace_ms.twa",
-        "sha256_cert_fingerprints": ["D4:45:E9:D5:09:E8:AD:DE:23:AD:F3:E1:EC:C6:60:23:CC:D2:F9:30:F7:2A:7B:91:3B:6D:8D:9F:08:FA:DB:F4"]
-      }
-    }]
