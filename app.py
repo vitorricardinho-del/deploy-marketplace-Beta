@@ -1309,25 +1309,23 @@ def anuncios_extras():
         relacionados = resp_relacionados.data if resp_relacionados.data else []
 
         # Organiza os dados para enviar para o JavaScript (Sua estrutura de retorno 100% mantida)
+        # Agora enviamos APENAS o nome do arquivo, sem o caminho '../static/uploads/'
         return jsonify({
             'do_vendedor': [{
-                # 🛡️ Pega 'id' ou 'eu ia' se o painel estiver traduzido
                 'id': p.get('id', p.get('eu ia', p.get('eu_ia', 0))),
                 'titulo': p.get('titulo', ''),
-                # 🛡️ Pega 'preco' ou 'preço' ou 'price'
                 'preco': float(p.get('preco', p.get('preço', p.get('price', 0)))) if (p.get('preco') or p.get('preço') or p.get('price')) else 0,
-                # 📸 O PULO DO GATO: Direciona o caminho relativo direto para a sua pasta static/uploads física do projeto!
-                'foto': f"../static/uploads/{p.get('foto', p.get('imagem', p.get('photo', '')))}"
+                'foto': p.get('foto', p.get('imagem', p.get('photo', ''))) 
             } for p in do_vendedor],
             
             'relacionados': [{
-                # 🛡️ Mesma proteção e correção de caminho local para os relacionados
                 'id': p.get('id', p.get('eu ia', p.get('eu_ia', 0))),
                 'titulo': p.get('titulo', ''),
                 'preco': float(p.get('preco', p.get('preço', p.get('price', 0)))) if (p.get('preco') or p.get('preço') or p.get('price')) else 0,
-                'foto': f"../static/uploads/{p.get('foto', p.get('imagem', p.get('photo', '')))}"
+                'foto': p.get('foto', p.get('imagem', p.get('photo', '')))
             } for p in relacionados]
         })
+    
     except Exception as e:
         print(f"Erro na API de anúncios extras: {e}")
         return jsonify({'do_vendedor': [], 'relacionados': []}), 500
