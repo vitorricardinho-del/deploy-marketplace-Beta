@@ -833,11 +833,13 @@ function carregarExtrasModal(id, categoria) {
                 
                 // 🔌 A ROTA CERTA: O Flask tem a rota '/serve_uploads/nome.jpg'
                 // O p.foto já vem limpo e com o .jpg do banco de dados!
-                lista.innerHTML += `
-                    <a href="/anuncio/${p.id}/${slug}" style="min-width:100px; text-decoration:none;">
-                        <img src="/serve_uploads/${p.foto}" style="width:100px; height:70px; object-fit:cover; border-radius:8px;" onerror="this.src='/static/logoicon.png'">
-                        <div style="font-size:10px; color:white;">${p.titulo}</div>
-                    </a>`;
+                // Dentro do seu forEach no JavaScript:
+// Use a rota direta para a pasta static do Flask
+            lista.innerHTML += `
+                <a href="/anuncio/${p.id}/${slug}" style="min-width:100px; text-decoration:none;">
+                    <img src="/static/uploads/${p.foto}" style="width:100px; height:70px; object-fit:cover; border-radius:8px;" onerror="this.src='/static/logoicon.png'">
+                    <div style="font-size:10px; color:white;">${p.titulo}</div>
+                </a>`;
             });
             
             data.relacionados.forEach(p => {
