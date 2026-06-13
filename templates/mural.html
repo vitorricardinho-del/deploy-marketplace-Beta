@@ -635,13 +635,13 @@
 </div>
 
 <script>
-    // 🚀 LÓGICA EQUILIBRADA: Mostra no PC e no celular, mas esconde se o usuário já estiver dentro do App instalado
-    const deDentroDoApk = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
-    const botaoApk = document.getElementById('btn-instalar-apk');
-
-    if (botaoApk && !deDentroDoApk) {
-        botaoApk.style.display = 'flex';
-    }
+    // 🔌 CIRCUITO DIRETO: Liga o botão direto sem fazer perguntas!
+    document.addEventListener("DOMContentLoaded", function() {
+        const botaoApk = document.getElementById('btn-instalar-apk');
+        if (botaoApk) {
+            botaoApk.style.display = 'flex'; // Força a exibição na tela
+        }
+    });
 
 
     const body = document.body;
