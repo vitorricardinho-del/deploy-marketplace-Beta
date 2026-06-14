@@ -1293,7 +1293,7 @@ def anuncios_extras():
             .select("*")\
             .eq("usuario_id", usuario_id_vendedor)\
             .neq("id", anuncio_id)\
-            .limit(6).execute()
+            .execute()
         
         do_vendedor = resp_vendedor.data if resp_vendedor.data else []
 
@@ -1304,7 +1304,7 @@ def anuncios_extras():
             .eq("categoria", categoria)\
             .neq("id", anuncio_id)\
             .neq("usuario_id", usuario_id_vendedor)\
-            .limit(4).execute()
+            .execute()
             
         relacionados = resp_relacionados.data if resp_relacionados.data else []
 
