@@ -27,6 +27,12 @@ def eh_o_vitor_logado():
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'uma-chave-muito-segura'
 
+app.config.update(
+    REMEMBER_COOKIE_DURATION=timedelta(days=365), 
+    REMEMBER_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_HTTPONLY=True
+)
+
 @app.context_processor
 def injetar_funcoes_uteis():
     return dict(eh_o_vitor_logado=eh_o_vitor_logado)
@@ -99,6 +105,8 @@ class Usuario(UserMixin):
         self.senha = kwargs.get('senha')
         self.pedidos = kwargs.get('pedidos', [])
         self.link_afiliado = kwargs.get('link_afiliado', '#')
+    def get_id(self):
+        return str(self.id)
 
 class Pedido:
     def __init__(self, **kwargs):
@@ -575,7 +583,8 @@ def cadastro_usuario():
             resp = supabase.table("usuario").insert(dados_usuario).execute()
             if resp.data:
                 novo_usuario = Usuario(**resp.data[0])
-                login_user(novo_usuario)
+                
+                login_user(novo_usuario, remember=True)
                 return redirect(url_for('completar_perfil'))
         except Exception as e:
             print(f"Erro no cadastro via Supabase: {e}")
