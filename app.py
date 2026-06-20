@@ -122,6 +122,8 @@ class Pedido:
         self.verificado = kwargs.get('verificado', False)
         self.autor = kwargs.get('autor', None)
         self.plataforma = kwargs.get('plataforma') or 'nosso parceiro'
+        self.link_afiliado = kwargs.get('link_afiliado')
+        self.is_afiliado = kwargs.get('is_afiliado', False)
 
 class VendaEstatistica:
     def __init__(self, **kwargs):
