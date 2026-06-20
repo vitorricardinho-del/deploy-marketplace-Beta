@@ -27,6 +27,10 @@ def eh_o_vitor_logado():
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'uma-chave-muito-segura'
 
+@app.context_processor
+def injetar_funcoes_uteis():
+    return dict(eh_o_vitor_logado=eh_o_vitor_logado)
+
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
