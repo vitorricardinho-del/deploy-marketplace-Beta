@@ -16,7 +16,6 @@ import hashlib
 import requests
 from bs4 import BeautifulSoup
 
-
 def eh_o_vitor_logado():
     if current_user.is_authenticated:
         email_atual = current_user.email.lower().strip()
@@ -31,8 +30,6 @@ app.config['SECRET_KEY'] = 'uma-chave-muito-segura'
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
-
-
 
 app.config['BABEL_DEFAULT_LOCALE'] = 'pt_br'
 moment = Moment(app)
@@ -71,22 +68,19 @@ def salvar_foto(arq, index=0):
         ext = os.path.splitext(arq.filename)[1].lower()
         nome_foto = f"foto_{int(time.time())}_{index}{ext}"
         caminho = os.path.join(app.config['UPLOAD_FOLDER'], nome_foto)
-        
         img = Image.open(arq)
         try:
             img = ImageOps.exif_transpose(img)
         except Exception as e:
             print(f"Erro ao corrigir orientação: {e}")
-
         if img.mode in ("RGBA", "P"): 
             img = img.convert("RGB")
-            
         img.thumbnail((800, 800), Image.Resampling.LANCZOS)
         img.save(caminho, optimize=True, quality=85)
-        
         return nome_foto
     return None
 
+# --- MODELOS ---
 class Usuario(UserMixin):
     def __init__(self, **kwargs):
         self.id = kwargs.get('id')
@@ -142,6 +136,7 @@ class Interesse:
         self.anuncio = kwargs.get('anuncio', None)
         self.comprador = kwargs.get('comprador', None)
 
+# --- FUNÇÕES DE SISTEMA ---
 def limpar_expirados():
     hoje = datetime.now(fuso_ivinhema)
     try:
@@ -183,6 +178,7 @@ def load_user(user_id):
         print(f"Erro ao carregar sessão do usuário: {e}")
     return None
 
+# --- ROTAS PRINCIPAIS ---
 @app.route('/cardapio_loja/<int:id_loja>')
 def ver_cardapio_loja(id_loja):
     try:
@@ -254,19 +250,15 @@ def exibir_mural():
 
         random.shuffle(anuncios_afiliados)
 
-        # === LÓGICA DE ORDENAÇÃO FINAL (Prioridade do usuário + Achadinhos no final) ===
         if current_user.is_authenticated:
-            # Separamos os MEUS anúncios dos OUTROS, mantendo a categoria original
             meus_normais = [p for p in pedidos_normais if p.usuario_id == current_user.id]
             outros_normais = [p for p in pedidos_normais if p.usuario_id != current_user.id]
             
             meus_achadinhos = [p for p in anuncios_afiliados if p.usuario_id == current_user.id]
             outros_achadinhos = [p for p in anuncios_afiliados if p.usuario_id != current_user.id]
             
-            # Ordem final: Meus normais > Outros normais > Meus Achadinhos > Outros Achadinhos
             pedidos = meus_normais + outros_normais + meus_achadinhos + outros_achadinhos
         else:
-            # Se não estiver logado, segue a ordem natural: Normais > Achadinhos
             pedidos = pedidos_normais + anuncios_afiliados
 
     except Exception as e:
@@ -404,6 +396,7 @@ def editar_pedido(id):
     cidades_ms.sort()
     return render_template('cadastro.html', pedido_edit=pedido, i=pedido, cidades_ms=cidades_ms)
 
+# --- ROTAS DE AÇÕES E API ---
 @app.route('/denunciar_anuncio/<int:id>')
 def denunciar_anuncio(id):
     try:
@@ -468,6 +461,7 @@ def registrar_interesse(anuncio_id):
         print(f"Erro ao registrar interesse no Supabase: {e}")
         return jsonify({"status": "erro", "mensagem": "Erro técnico ao processar solicitação."}), 500
 
+# --- PERFIL E LOGIN ---
 @app.route('/completar_perfil', methods=['GET', 'POST'])
 @login_required
 def completar_perfil():
@@ -583,6 +577,7 @@ def cadastro_usuario():
             return redirect(url_for('cadastro_usuario'))
     return render_template('cadastro_usuario.html')
 
+# --- ADMIN ---
 @app.route('/admin_mural')
 @precisa_de_senha
 def admin_mural():
@@ -609,15 +604,11 @@ def admin_mural():
         total_den = sum(1 for p in todos if (p.denuncias or 0) > 0)
         pendentes_cont = sum(1 for p in todos if p.plano_aguardando > 0 and p.plano == 0)
 
-        # === INÍCIO DA LÓGICA ADICIONADA: JOGAR ACHADINHOS PRO FINAL ===
         pedidos_normais = []
         pedidos_achadinhos = []
         for p in todos:
-            if p.categoria == 'Achadinhos':
-                pedidos_achadinhos.append(p)
-            else:
-                pedidos_normais.append(p)
-        
+            if p.categoria == 'Achadinhos': pedidos_achadinhos.append(p)
+            else: pedidos_normais.append(p)
         todos_organizados = pedidos_normais + pedidos_achadinhos
         
         return render_template('admin.html', pedidos=todos_organizados, faturamento=faturamento, total_denuncias=total_den, total_vendas=total_vendas_realizadas, stats_categorias=stats_categorias, mais_acessados=mais_acessados, top_1=top_1, ultimos=todos[:5], pendentes=pendentes_cont, parceiros_food=parceiros_pendentes)
@@ -720,48 +711,38 @@ def excluir_pedido(id):
     p_dados = resp.data[0]
     p = Pedido(**p_dados)
     
-    # Verificação de permissão melhorada com log de debug
     e_dono = (p.usuario_id == current_user.id)
     e_admin = getattr(current_user, 'is_admin', False)
     
     if e_dono or e_admin:
         try:
-            # 1. Remove interesses vinculados
             supabase.table("interesse").delete().eq("anuncio_id", id).execute()
-            
-            # 2. Remove fotos físicas
             for f in [p.foto, p.foto2, p.foto3]:
                 if f and f != 'sem-foto.jpg' and f != '':
                     caminho = os.path.join(app.config['UPLOAD_FOLDER'], f)
                     if os.path.exists(caminho):
                         try: os.remove(caminho)
                         except Exception as e: print(f"Erro ao remover arquivo físico: {e}")
-            
-            # 3. Exclui o anúncio
             supabase.table("pedido").delete().eq("id", id).execute()
             return redirect(url_for('exibir_mural'))
-            
         except Exception as e:
             print(f"Erro ao excluir no Supabase: {e}")
             return f"Erro ao excluir: {e}", 500
     else:
-        # LOG DE SEGURANÇA: Isso aparecerá no seu terminal quando der o erro 403
         print(f"DEBUG EXCLUSÃO: Tentativa falha. UserID Logado: {current_user.id}, Anúncio OwnerID: {p.usuario_id}, É Admin: {e_admin}")
-        return "Sem permissão. Verifique seu ID de usuário ou status de Admin.", 403
+        return "Sem permissão.", 403
 
 @app.route('/zerar_estatisticas')
 @precisa_de_senha
 def zerar_estatisticas():
     if not eh_o_vitor_logado(): return redirect(url_for('exibir_mural'))
     try:
-        # AGORA SIM: Zera a coluna 'acessos' de todos os anúncios na tabela 'pedido'
         supabase.table("pedido").update({"acessos": 0}).gt("id", 0).execute()
-        print("Ranking (acessos) zerado com sucesso.")
     except Exception as e:
         print(f"Erro ao zerar: {e}")
-    
     return redirect(url_for('admin_mural'))
 
+# --- UTILITÁRIOS E MISC ---
 @app.route('/instalar')
 def pagina_instalar():
     return render_template('instalar.html')
@@ -887,7 +868,6 @@ def recuperar_senha():
     if request.method == 'POST':
         email = request.form.get('email')
         try:
-            # O Supabase envia o e-mail automaticamente
             supabase.auth.reset_password_email(email)
             flash("Verifique seu e-mail para resetar a senha.")
         except Exception as e:
@@ -898,34 +878,23 @@ def recuperar_senha():
 def extrair_dados():
     url = request.json.get('url')
     try:
-        # Adicionamos um User-Agent mais robusto e aceitamos outros formatos
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
             'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7',
             'Referer': 'https://www.google.com/'
         }
-        
         response = requests.get(url, headers=headers, timeout=10)
         soup = BeautifulSoup(response.text, 'html.parser')
-        
-        # Tenta pegar das tags OpenGraph
         titulo = soup.find("meta", property="og:title")
         img = soup.find("meta", property="og:image")
-        
-        # fallback: tenta pegar a tag <title> padrão se não achar a OpenGraph
         titulo_final = titulo['content'] if titulo else (soup.title.string if soup.title else 'Título não encontrado')
-        
-        return jsonify({
-            'titulo': titulo_final,
-            'foto': img['content'] if img else ''
-        })
+        return jsonify({'titulo': titulo_final, 'foto': img['content'] if img else ''})
     except Exception as e:
         return jsonify({'erro': str(e)}), 500
 
 @app.route('/cadastrar_achadinho', methods=['POST'])
-@login_required # Garante que só usuários logados consigam postar
+@login_required
 def cadastrar_achadinho():
-    
     dados = {
         "titulo": request.form.get('titulo'),
         "preco": float(request.form.get('preco', 0)),
@@ -936,8 +905,6 @@ def cadastrar_achadinho():
         "categoria": "Achadinhos",
         "usuario_id": 6
     }
-    
-    # Tenta inserir e imprime o erro se falhar
     try:
         supabase.table("pedido").insert(dados).execute()
         return redirect(url_for('admin_mural'))
