@@ -274,11 +274,22 @@
 
 <div class="container-categorias" style="margin-top: 20px;">
     <a href="/" class="btn-categoria" style="background: {{ '#333' if not cat_ativa else '#1c1c1e' }}; color: white;">Todos</a>
-    <a href="/?categoria=Food" class="btn-categoria btn-food {{ 'ativa-food' if cat_ativa == 'Food' else '' }} pulsar-food" style="background: {{ '#EA1D2C' if cat_ativa == 'Food' else '#252525' }}; color: white;">🍔 Food online</a>
-    {% for c in ['Achadinhos','Eletrônicos', 'Moda', 'Veículos', 'Imóveis', 'Móveis e Decoração', 'Eletrodomésticos', 'Serviços', 'Gamer', 'Outros' ] %}
-    <a href="/?categoria={{ c }}" class="btn-categoria {{ 'ativa-achadinho' if cat_ativa == c else '' }} {{ 'pulsar-achadinho' if c == 'Achadinhos' else '' }}" style="background: {{ 'var(--prata)' if cat_ativa == c else '#1c1c1e' }}; color: {{ '#000' if cat_ativa == c else '#888' }}; border: 1px solid {{ 'var(--prata)' if cat_ativa == c else '#333' }};">
-        {{ c }}
+    <a href="/?categoria=Food" 
+    class="btn-categoria btn-food {{ 'ativa-food' if cat_ativa == 'Food' else '' }} pulsar-food" 
+    style="background: {{ '#EA1D2C' if cat_ativa == 'Food' else '#252525' }}; 
+            color: #fe0212;"> 
+    🍔 Food online
     </a>
+
+    {% for c in ['Achadinhos','Eletrônicos', 'Moda', 'Veículos', 'Imóveis', 'Móveis e Decoração', 'Eletrodomésticos', 'Serviços', 'Gamer', 'Outros' ] %}
+        <a href="/?categoria={{ c }}" 
+        class="btn-categoria {{ 'ativa-achadinho' if cat_ativa == c else '' }} {{ 'pulsar-achadinho' if c == 'Achadinhos' else '' }}" 
+        style="background: {{ 'var(--prata)' if cat_ativa == c else '#1c1c1e' }}; 
+                color: {{ 'white' if cat_ativa == c else ( 'var(--prata)' if c == 'Achadinhos' else '#888' ) }}; 
+                font-weight: {{ 'bold' if c == 'Achadinhos' else 'normal' }};
+                border: 1px solid {{ 'var(--prata)' if cat_ativa == c else '#333' }};">
+            {{ c }}
+        </a>
     {% endfor %}
 </div>
 
