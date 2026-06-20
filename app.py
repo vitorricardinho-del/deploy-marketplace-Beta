@@ -899,21 +899,28 @@ def extrair_dados():
 @app.route('/cadastrar_achadinho', methods=['POST'])
 @login_required
 def cadastrar_achadinho():
+    # 1. Printa tudo o que veio do formulário de uma vez
+    print(f"DEBUG FORM: {request.form.to_dict()}")
+
     dados = {
         "titulo": request.form.get('titulo'),
         "preco": float(request.form.get('preco', 0)),
         "foto": request.form.get('foto_url'),
-        "link_afiliado": request.form.get('link_afiliado'),
+        "link_afiliado": request.form.get('link_afiliado', ''),
         "plataforma": request.form.get('plataforma'),
         "is_afiliado": True,
         "categoria": "Achadinhos",
-        "usuario_id": 6
+        "usuario_id": current_user.id
     }
+    
     try:
-        supabase.table("pedido").insert(dados).execute()
+        # 2. Executa a inserção
+        res = supabase.table("pedido").insert(dados).execute()
+        print("DEBUG: Resposta final do Supabase:", res.data)
         return redirect(url_for('admin_mural'))
     except Exception as e:
-        return f"Erro bruto do Supabase: {str(e)}", 500
+        print(f"DEBUG ERRO FATAL: {str(e)}")
+        return "Erro ao cadastrar", 500
 
 if __name__ == '__main__':
     app.run(debug=True)
