@@ -28,9 +28,11 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'uma-chave-muito-segura'
 
 app.config.update(
-    REMEMBER_COOKIE_DURATION=timedelta(days=365), 
+    REMEMBER_COOKIE_DURATION=timedelta(days=365),
     REMEMBER_COOKIE_HTTPONLY=True,
-    SESSION_COOKIE_HTTPONLY=True
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SECURE=False,
+    SESSION_COOKIE_SAMESITE='Lax' 
 )
 
 @app.context_processor
