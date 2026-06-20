@@ -31,7 +31,7 @@ app.config.update(
     REMEMBER_COOKIE_DURATION=timedelta(days=365),
     REMEMBER_COOKIE_HTTPONLY=True,
     SESSION_COOKIE_HTTPONLY=True,
-    SESSION_COOKIE_SECURE=True,
+    SESSION_COOKIE_SECURE=False,
     SESSION_COOKIE_SAMESITE='Lax' 
 )
 
@@ -554,7 +554,7 @@ def login():
                 dados_usuario = resp.data[0]
                 user = Usuario(**dados_usuario)
                 if check_password_hash(user.senha, senha_inf):
-                    login_user(user)
+                    login_user(user, remember=True)
                     return redirect(url_for('exibir_mural'))
             flash("E-mail ou senha incorretos.")
         except Exception as e:
