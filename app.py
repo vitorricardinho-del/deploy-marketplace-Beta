@@ -754,9 +754,12 @@ def excluir_pedido(id):
 def zerar_estatisticas():
     if not eh_o_vitor_logado(): return redirect(url_for('exibir_mural'))
     try:
-        supabase.table("venda_estatistica").delete().gt("id", 0).execute()
+        # AGORA SIM: Zera a coluna 'acessos' de todos os anúncios na tabela 'pedido'
+        supabase.table("pedido").update({"acessos": 0}).gt("id", 0).execute()
+        print("Ranking (acessos) zerado com sucesso.")
     except Exception as e:
-        print(f"Erro ao zerar estatísticas: {e}")
+        print(f"Erro ao zerar: {e}")
+    
     return redirect(url_for('admin_mural'))
 
 @app.route('/instalar')
