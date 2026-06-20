@@ -150,7 +150,7 @@
             <form action="{{ url_for('cadastrar_achadinho') }}" method="POST" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; align-items: end;">
                 <div>
                     <label style="font-size: 11px; color: #888;">Link de Afiliado</label>
-                    <input type="url" name="link_afiliado" onblur="buscarDadosAfiliado()" placeholder="Cole o link aqui..." required style="width: 100%; padding: 8px; border-radius: 6px; background: #000; border: 1px solid #333; color: #fff;">
+                    <input type="url" name="link_afiliado" id="link_afiliado" onblur="buscarDadosAfiliado()" placeholder="Cole o link aqui..." required style="width: 100%; padding: 8px; border-radius: 6px; background: #000; border: 1px solid #333; color: #fff;">
                 </div>
                 <div>
                     <label style="font-size: 11px; color: #888;">Título</label>
@@ -170,7 +170,7 @@
                 <button type="submit" style="background: var(--primaria); color: #000; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer;">CADASTRAR</button>
             </form>
         </div>
-
+    
         <div class="stats-grid">
             <div class="stat-card" style="border-left: 5px solid #25d366;">
                 <span style="color: #aaa; font-size: 10px; text-transform: uppercase; font-weight: bold;">💰 Faturamento</span>
