@@ -923,10 +923,8 @@ def cadastrar_achadinho():
     print(f"DEBUG FORM: {request.form.to_dict()}")
 
     # --- INÍCIO DA LÓGICA DA PROMOÇÃO RELÂMPAGO ---
-    # Verifica se a caixinha foi marcada (retorna True ou False)
     is_promo = request.form.get('is_promo') == 'sim'
     
-    # Pega os dias informados. Se der erro, assume 7 dias por segurança.
     try:
         dias_promo = int(request.form.get('dias_promo', 7))
     except ValueError:
@@ -938,6 +936,7 @@ def cadastrar_achadinho():
         vencimento = agora_utc + timedelta(days=dias_promo)
     else:
         vencimento = agora_utc + timedelta(days=365)
+    # --- FIM DA LÓGICA DA PROMOÇÃO ---
 
     dados = {
         "titulo": request.form.get('titulo'),
@@ -950,9 +949,10 @@ def cadastrar_achadinho():
         "usuario_id": current_user.id,
         
         # A MÁGICA ACONTECE AQUI:
-        "plano": 2 if is_promo else 0,  # Se for promo, vai pro plano 2 (que é o topo junto com os turbinados)
-        "is_premium": is_promo,         # Marca como premium para usarmos no CSS depois
-        "data_criacao": agora.isoformat(),
+        "plano": 2 if is_promo else 0,
+        "is_premium": is_promo,
+        # CORRIGIDO AQUI: agora -> agora_utc
+        "data_criacao": agora_utc.isoformat(),
         "data_expiracao": vencimento.isoformat()
     }
     
@@ -963,7 +963,7 @@ def cadastrar_achadinho():
         return redirect(url_for('admin_mural'))
     except Exception as e:
         print(f"DEBUG ERRO FATAL: {str(e)}")
-        return "Erro ao cadastrar", 500
+        return f"Erro ao cadastrar: {str(e)}", 500
 
 if __name__ == '__main__':
     app.run(debug=True)
