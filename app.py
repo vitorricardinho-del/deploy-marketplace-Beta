@@ -932,14 +932,12 @@ def cadastrar_achadinho():
     except ValueError:
         dias_promo = 7
 
-    agora = datetime.now(fuso_ivinhema)
+    agora_utc = datetime.now(timezone.utc)
     
-    # Se for promoção, expira nos dias definidos. Se for normal, expira em 1 ano (365 dias).
     if is_promo:
-        vencimento = agora + timedelta(days=dias_promo)
+        vencimento = agora_utc + timedelta(days=dias_promo)
     else:
-        vencimento = agora + timedelta(days=365)
-    # --- FIM DA LÓGICA DA PROMOÇÃO ---
+        vencimento = agora_utc + timedelta(days=365)
 
     dados = {
         "titulo": request.form.get('titulo'),
