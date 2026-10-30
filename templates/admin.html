@@ -138,7 +138,6 @@
             <h1 style="margin-bottom: 20px;">🔐 Gestão do Mural - Ivinhema</h1>
             
             <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; border: 1px solid #333;">
-                <a href="{{ url_for('baixar_banco') }}" style="background: var(--ouro); color: #000; padding: 10px 15px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 13px; display: flex; align-items: center; gap: 5px;">📥 Banco (.db)</a>
                 <a href="{{ url_for('limpar_inativos_manual') }}" onclick="return confirm('🚨 ATENÇÃO...')" style="background: #e67e22; color: #fff; padding: 10px 15px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 13px; display: flex; align-items: center; gap: 5px;">🧹 Limpeza (180 dias+)</a>
                 <a href="{{ url_for('exibir_mural') }}" style="color: #00e5ff; text-decoration: none; font-weight: bold; font-size: 14px; margin-left: auto; padding-right: 10px;">← Ver Mural</a>
             </div>
