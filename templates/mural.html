@@ -32,18 +32,31 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     {{ moment.include_moment() }}
     {{ moment.lang("pt-br") }}
-</head>
 
 <style>
     input, select, textarea { font-size: 16px !important; }
     body, html { overflow-x: hidden; width: 100%; }
-    :root { --ouro: #ffd700; --prata: #00e5ff; --fundo-card: #1c1c1e; --verde-preco: #2ecc71; --fundo-site: #111111;}
+    :root { --ouro: #ffd700; --prata: #00e5ff; --fundo-card: #1c1c1e; --verde-preco: #2ecc71; --fundo-site: #111111; --largura-site: 1100px; }
     #toast-container { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 20000; display: none; }
     .toast-card { background: #1c1c1e; color: white; padding: 25px 35px; border-radius: 20px; border: 2px solid var(--prata); box-shadow: 0 10px 50px rgba(0,0,0,0.9); text-align: center; min-width: 250px; }
     body { background-color: #111; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; color: white; color-scheme: dark; -webkit-overflow-scrolling: touch; overflow-y: auto; text-rendering: optimizeSpeed; transform: translateZ(0); }
     
-    .mural-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 15px; padding: 10px; width: 100%; max-width: 100%; margin: 0 auto; box-sizing: border-box; align-items: start; }
+    /* ===== LAYOUT CENTRALIZADO ===== */
+    .mural-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 15px; padding: 10px; width: 100%; max-width: var(--largura-site); margin: 0 auto; box-sizing: border-box; align-items: start; }
     .card { background: var(--fundo-card); border-radius: 12px; padding: 12px; border: 1px solid #333; position: relative; display: flex; flex-direction: column; height: 100%; margin-bottom: 20px; box-sizing: border-box; }
+
+    /* barras do topo: fundo ocupa a tela toda, conteúdo fica centralizado */
+    .user-bar { padding: 10px max(20px, calc((100% - var(--largura-site)) / 2)) !important; }
+    .barra-links { padding: 8px max(15px, calc((100% - var(--largura-site)) / 2)) !important; }
+
+    @media (min-width: 768px) {
+        .mural-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .grid-lanchonetes { grid-template-columns: repeat(3, 1fr) !important; }
+    }
+    @media (min-width: 1024px) {
+        .mural-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+        .grid-lanchonetes { grid-template-columns: repeat(4, 1fr) !important; }
+    }
 
     .container-busca { max-width: 500px; margin: 20px auto; padding: 0 20px; position: relative; display: flex; justify-content: center; }
     #busca { width: 100%; height: 50px; padding: 0 15px 0 55px; border-radius: 12px; border: 2px solid #00e5ff; background: #ffffff; color: #111111; font-size: 16px; outline: none; box-sizing: border-box; transition: background 0.3s, color 0.3s; }
@@ -128,6 +141,7 @@
         100% { width: 5%; }
     }
 
+    .vitrine-food-container { max-width: var(--largura-site); margin: 0 auto; }
     .grid-lanchonetes { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 10px; width: 100%; box-sizing: border-box; }
     .card-perfil-loja { background: #1c1c1e; border-radius: 15px; border: 1px solid #333; padding: 15px 10px; display: flex; flex-direction: column; align-items: center; text-align: center; transition: 0.3s; }
     .container-foto-bola { width: 80px; height: 80px; margin-bottom: 10px; }
@@ -229,7 +243,7 @@
     {% endif %}
 </div>
 
-<div style="padding: 8px 15px; display: flex; justify-content: center; align-items: center; gap: 12px; flex-wrap: wrap; background: #18181c; border-bottom: 1px solid #252529;">
+<div class="barra-links" style="padding: 8px 15px; display: flex; justify-content: center; align-items: center; gap: 12px; flex-wrap: wrap; background: #18181c; border-bottom: 1px solid #252529;">
     <a href="https://wa.me/5567981244675?text=Olá, preciso de suporte no Marketplace-MS" target="_blank" style="text-decoration: none; background: rgba(255,255,255,0.05); border: 1px solid #333; padding: 6px 14px; border-radius: 20px; display: flex; align-items: center; gap: 6px; transition: 0.3s;">
         <img src="/static/telefone.png" style="width: 14px; height: 14px; object-fit: contain;" onerror="this.style.display='none'">
         <span style="color: #ccc; font-size: 11px; font-weight: bold;">Suporte</span>
@@ -487,12 +501,12 @@
     campoBusca.addEventListener('input', function() {
         const texto = this.value;
         if (texto.length >= 2) {
-            fetch(`/sugestoes_busca?q=${texto}`).then(res => res.json()).then(dados => {
+            fetch(`/sugestoes_busca?q=${encodeURIComponent(texto)}`).then(res => res.json()).then(dados => {
                 listaSugestoes.innerHTML = '';
                 if (dados.length > 0) {
                     dados.forEach(item => {
                         const div = document.createElement('div');
-                        div.innerHTML = item; div.style.padding = '12px 15px'; div.style.cursor = 'pointer'; div.style.color = '#111';
+                        div.textContent = item; div.style.padding = '12px 15px'; div.style.cursor = 'pointer'; div.style.color = '#111';
                         div.onclick = function() { campoBusca.value = item; campoBusca.form.submit(); };
                         listaSugestoes.appendChild(div);
                     });
@@ -566,7 +580,7 @@
     }
     
     function carregarExtrasModal(id, categoria) {
-        fetch(`/api/anuncios_extras?id=${id}&categoria=${categoria}`)
+        fetch(`/api/anuncios_extras?id=${id}&categoria=${encodeURIComponent(categoria)}`)
             .then(res => res.json()).then(data => {
                 const lista = document.getElementById('listaVendedorModal');
                 const listaRelacionados = document.getElementById('listaRelacionadosModal');
